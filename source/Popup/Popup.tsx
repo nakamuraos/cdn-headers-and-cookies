@@ -271,7 +271,7 @@ export function Popup(): React.JSX.Element {
       </div>
       ) : null}
 
-      <div role="tablist" className="flex shrink-0 gap-0 border-b border-line px-3 classic:h-[45px] classic:items-end classic:gap-0 classic:px-0">
+      <div role="tablist" className="flex shrink-0 gap-0 border-b border-line classic:h-[45px] classic:items-end">
         {TABS.map(({id, label}) => (
           <button
             key={id}
@@ -279,7 +279,7 @@ export function Popup(): React.JSX.Element {
             role="tab"
             aria-selected={tab === id}
             onClick={() => setTab(id)}
-            className="-mb-px cursor-pointer border-b-2 border-transparent px-3 py-2.5 text-ink-dim aria-selected:border-accent aria-selected:font-semibold aria-selected:text-accent classic:skin-display classic:h-[35px] classic:w-1/3 classic:rounded-t classic:border classic:border-transparent classic:border-b-line classic:px-0 classic:py-0 classic:text-center classic:text-[14px] classic:font-bold classic:text-accent classic:aria-selected:border-line classic:aria-selected:border-b-transparent classic:aria-selected:bg-surface classic:aria-selected:font-bold classic:aria-selected:text-[#555]"
+            className="-mb-px flex-1 cursor-pointer border-b-2 border-transparent px-3 py-2.5 text-center text-ink-dim aria-selected:border-accent aria-selected:font-semibold aria-selected:text-accent classic:skin-display classic:h-[35px] classic:w-1/3 classic:rounded-t classic:border classic:border-transparent classic:border-b-line classic:px-0 classic:py-0 classic:text-center classic:text-[14px] classic:font-bold classic:text-accent classic:aria-selected:border-line classic:aria-selected:border-b-transparent classic:aria-selected:bg-surface classic:aria-selected:font-bold classic:aria-selected:text-[#555]"
           >
             {label}
           </button>

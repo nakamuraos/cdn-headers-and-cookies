@@ -85,7 +85,7 @@ export function SettingsPanel({
           onChange={(skin) => onChange({skin})}
         />
 
-        <p className="skin-sm m-0 text-right text-[11px] text-ink-dim italic">version : {VERSION}</p>
+        <p className="skin-sm m-0 text-right text-ink-dim italic">version : {VERSION}</p>
       </div>
     );
   }

@@ -178,14 +178,23 @@ body {
 }
 
 /*
-  Browsers cap extension popups at 800x600 and refuse to scroll the window
-  itself, so the frame is clamped to the viewport and scrolls internally.
+  A popup window is sized from its content, so the frame must state a width
+  rather than derive one from the viewport: vw units are circular here and
+  collapse the popup. Browsers cap popups at 800x600 and scroll them
+  internally, which is the only limit that needs respecting.
 */
 @utility skin-popup {
-  width: var(--skin-width);
+  width: 100%;
   height: var(--skin-height);
-  max-width: 100vw;
-  max-height: 100vh;
+  max-height: 100%;
+}
+
+/* Carried by the popup document only; the options page sizes to its tab. */
+.popup-frame {
+  width: var(--skin-width);
+  max-width: 800px;
+  margin: 0;
+  overflow: hidden;
 }
 
 :focus-visible {

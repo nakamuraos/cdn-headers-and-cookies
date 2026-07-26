@@ -84,6 +84,7 @@ describe.each(SKINS)('under the %s skin', (skin) => {
         preset={presets.akamai}
         skin={skin}
         onExport={() => undefined}
+        onCopy={() => undefined}
       />,
       skin
     );
@@ -120,6 +121,7 @@ describe.each(SKINS)('under the %s skin', (skin) => {
         customHeaders={[{name: 'Bad Header', value: '1', enabled: true}]}
         onCustomHeadersChange={() => undefined}
         onExport={() => undefined}
+        onCopy={() => undefined}
       />,
       skin
     );
@@ -136,6 +138,7 @@ describe('structural skin differences', () => {
         preset={presets.akamai}
         skin="classic"
         onExport={() => undefined}
+        onCopy={() => undefined}
       />
     );
 
@@ -148,6 +151,7 @@ describe('structural skin differences', () => {
         preset={presets.akamai}
         skin="modern"
         onExport={() => undefined}
+        onCopy={() => undefined}
       />
     );
 
@@ -173,6 +177,7 @@ describe('CDN detection', () => {
         preset={presets.akamai}
         skin="modern"
         onExport={() => undefined}
+        onCopy={() => undefined}
       />
     );
 
@@ -190,6 +195,7 @@ describe('CDN detection', () => {
         preset={presets.akamai}
         skin="modern"
         onExport={() => undefined}
+        onCopy={() => undefined}
         onUsePreset={onUsePreset}
       />
     );
@@ -206,6 +212,7 @@ describe('CDN detection', () => {
         preset={presets.cloudfront}
         skin="modern"
         onExport={() => undefined}
+        onCopy={() => undefined}
         onUsePreset={() => undefined}
       />
     );
@@ -224,6 +231,7 @@ describe('CDN detection', () => {
         preset={presets.fastly}
         skin="modern"
         onExport={() => undefined}
+        onCopy={() => undefined}
       />
     );
 
@@ -257,6 +265,7 @@ describe('header ordering', () => {
         customHeaders={[]}
         onCustomHeadersChange={() => undefined}
         onExport={() => undefined}
+        onCopy={() => undefined}
       />
     );
 
@@ -272,6 +281,7 @@ describe('header ordering', () => {
         customHeaders={[]}
         onCustomHeadersChange={() => undefined}
         onExport={() => undefined}
+        onCopy={() => undefined}
       />
     );
 
@@ -300,6 +310,7 @@ describe('custom header editing', () => {
         customHeaders={[]}
         onCustomHeadersChange={onChange}
         onExport={() => undefined}
+        onCopy={() => undefined}
       />
     );
 
@@ -322,6 +333,7 @@ describe('custom header editing', () => {
         ]}
         onCustomHeadersChange={onChange}
         onExport={() => undefined}
+        onCopy={() => undefined}
       />
     );
 
@@ -340,6 +352,7 @@ describe('custom header editing', () => {
         customHeaders={[]}
         onCustomHeadersChange={() => undefined}
         onExport={() => undefined}
+        onCopy={() => undefined}
       />
     );
 

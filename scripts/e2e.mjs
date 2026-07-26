@@ -226,22 +226,14 @@ try {
   const sw = new CDP(swTarget.webSocketDebuggerUrl);
   await sw.send('Runtime.enable');
 
-  // --- dynamic rules ---
-  const rules = await sw.evaluate('chrome.declarativeNetRequest.getDynamicRules()');
-  const pragmaRule = rules?.find((r) =>
-    r.action?.requestHeaders?.some((h) => h.header.toLowerCase() === 'pragma')
-  );
-  check('DNR dynamic rule for the Akamai Pragma exists', Boolean(pragmaRule));
-  check(
-    'Pragma rule applies to all hosts by default',
-    Boolean(pragmaRule) && !pragmaRule.condition?.requestDomains,
-    `condition=${JSON.stringify(pragmaRule?.condition ?? {})}`
+  // --- Auto injects nothing until it has seen what a host runs ---
+  const initialRules = await sw.evaluate(
+    'chrome.declarativeNetRequest.getDynamicRules()'
   );
   check(
-    'Pragma value carries the akamai-x directives',
-    String(pragmaRule?.action?.requestHeaders?.[0]?.value ?? '').includes(
-      'akamai-x-get-true-cache-key'
-    )
+    'Auto injects nothing before any response is seen',
+    (initialRules ?? []).length === 0,
+    `${(initialRules ?? []).length} rules`
   );
 
   // --- drive a real page ---
@@ -270,17 +262,70 @@ try {
     [...new Set(requests.map((r) => r.type))].join(', ')
   );
 
-  // --- injection actually reached the wire ---
-  const pragma = doc?.requestHeaders?.find((h) => h.name.toLowerCase() === 'pragma');
-  check('Pragma header present on the outgoing request', Boolean(pragma));
+  const firstNames = (doc?.responseHeaders ?? []).map((h) => h.name.toLowerCase());
+  check('response headers captured', firstNames.length > 0, `${firstNames.length} headers`);
+  check(
+    'status line captured as a pseudo-header',
+    firstNames.includes('status'),
+    doc?.statusLine ?? ''
+  );
+  check(
+    'no headers injected on the first visit, before the CDN is known',
+    !doc?.requestHeaders?.some((h) => h.injected)
+  );
+
+  // --- having seen the response, Auto learns the host's CDN ---
+  const learned = await sw.evaluate(`
+    (async () => {
+      const {settings = {}} = await chrome.storage.local.get('settings');
+      return settings.detectedHosts ?? {};
+    })()
+  `);
+  check(
+    'identified the CDN from the response',
+    learned?.['mit.edu'] === 'akamai',
+    JSON.stringify(learned ?? {})
+  );
+
+  const learnedRules = await sw.evaluate(
+    'chrome.declarativeNetRequest.getDynamicRules()'
+  );
+  const pragmaRule = (learnedRules ?? []).find((r) =>
+    r.action?.requestHeaders?.some((h) => h.header.toLowerCase() === 'pragma')
+  );
+  check('a Pragma rule now exists for that host', Boolean(pragmaRule));
+  check(
+    'the rule is scoped to the host, not applied everywhere',
+    Boolean(pragmaRule?.condition?.requestDomains?.length),
+    JSON.stringify(pragmaRule?.condition?.requestDomains ?? [])
+  );
+  check(
+    'Pragma value carries the akamai-x directives',
+    String(pragmaRule?.action?.requestHeaders?.[0]?.value ?? '').includes(
+      'akamai-x-get-true-cache-key'
+    )
+  );
+
+  // --- the next visit carries them, and the CDN answers ---
+  await browser.send('Target.createTarget', {url: `${TARGET_URL}?again=1`});
+  await sleep(12000);
+
+  const revisit = await sw.evaluate(`
+    (async () => {
+      const all = await chrome.storage.session.get(null);
+      const reqs = Object.keys(all)
+        .filter((k) => k.startsWith('capture:'))
+        .flatMap((k) => all[k]);
+      return reqs.find((r) => r.type === 'main_frame' && r.url.includes('again=1'));
+    })()
+  `);
+
+  const pragma = revisit?.requestHeaders?.find((h) => h.name.toLowerCase() === 'pragma');
+  check('Pragma header present on the second visit', Boolean(pragma));
   check('Pragma header is marked as injected', pragma?.injected === true);
 
-  // --- the CDN answered with debug headers ---
-  const names = (doc?.responseHeaders ?? []).map((h) => h.name.toLowerCase());
-  check('response headers captured', names.length > 0, `${names.length} headers`);
-  check('status line captured as a pseudo-header', names.includes('status'),
-    doc?.statusLine ?? '');
-  const xCache = doc?.responseHeaders?.find((h) => h.name.toLowerCase() === 'x-cache');
+  const names = (revisit?.responseHeaders ?? []).map((h) => h.name.toLowerCase());
+  const xCache = revisit?.responseHeaders?.find((h) => h.name.toLowerCase() === 'x-cache');
   check('Akamai X-Cache present in the response', Boolean(xCache), xCache?.value ?? '');
   check(
     'X-Check-Cacheable present in the response',
@@ -326,13 +371,13 @@ try {
   await sleep(2500);
 
   const afterToggle = await sw.evaluate('chrome.declarativeNetRequest.getDynamicRules()');
-  const toggled = afterToggle?.find((r) =>
-    r.action?.requestHeaders?.some((h) => h.header.toLowerCase() === 'pragma')
+  const stillInjecting = (afterToggle ?? []).some((r) =>
+    r.condition?.requestDomains?.includes('mit.edu')
   );
   check(
-    'turning a host off adds it to the rule exclusions',
-    toggled?.condition?.excludedRequestDomains?.includes('mit.edu') === true,
-    JSON.stringify(toggled?.condition ?? {})
+    'turning a host off drops its injection rule',
+    !stillInjecting,
+    JSON.stringify((afterToggle ?? []).map((r) => r.condition?.requestDomains))
   );
 
   // --- popup page loads without throwing ---

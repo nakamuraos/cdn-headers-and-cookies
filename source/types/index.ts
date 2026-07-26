@@ -62,6 +62,8 @@ export interface Settings {
   preset: CdnPresetId;
   /** Per-host injection toggles. A host absent from this map defaults to enabled. */
   hostToggles: Record<string, boolean>;
+  /** CDN identified from each host's responses, which is what Auto injects for. */
+  detectedHosts: Record<string, CdnPresetId>;
   /** Custom request headers keyed by host. */
   hostHeaders: Record<string, CustomHeader[]>;
   /** Custom request headers applied to every host. */
@@ -76,6 +78,7 @@ export interface Settings {
 export const defaultSettings: Settings = {
   preset: 'auto',
   hostToggles: {},
+  detectedHosts: {},
   hostHeaders: {},
   globalHeaders: [],
   captureLimit: 200,

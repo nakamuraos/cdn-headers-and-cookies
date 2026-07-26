@@ -6,7 +6,7 @@ import type {CustomHeader, Settings} from '@/types';
 /** Rule ids are partitioned so the rule families can be reasoned about independently. */
 const PRESET_RULE_ID = 1;
 const GLOBAL_RULE_ID = 2;
-const HOST_RULE_BASE = 1_000;
+const HOST_RULE_BASE = 100_000;
 
 export interface HeaderRule {
   id: number;
@@ -86,13 +86,34 @@ export function desiredRules(settings: Settings): HeaderRule[] {
   const rules: HeaderRule[] = [];
   const preset = getPreset(settings.preset);
 
-  if (preset.inject.length > 0) {
+  let presetRuleId = PRESET_RULE_ID;
+
+  if (preset.id === 'auto') {
+    // Auto has no directives of its own. It injects what a host's own CDN
+    // understands, and only once that CDN has been seen in a response, so a
+    // site is never sent debug headers meant for someone else's edge.
+    for (const [host, id] of Object.entries(settings.detectedHosts)) {
+      if (settings.hostToggles[host] === false) continue;
+
+      const detected = getPreset(id);
+      if (detected.inject.length === 0) continue;
+
+      rules.push({
+        id: presetRuleId,
+        priority: 1,
+        action: modifyAction(detected.inject),
+        condition: {requestDomains: [host], resourceTypes: RESOURCE_TYPES},
+      });
+
+      presetRuleId += 1;
+    }
+  } else if (preset.inject.length > 0) {
     const disabled = Object.entries(settings.hostToggles)
       .filter(([, on]) => on === false)
       .map(([host]) => host);
 
     rules.push({
-      id: PRESET_RULE_ID,
+      id: presetRuleId,
       priority: 1,
       action: modifyAction(preset.inject),
       condition: {
@@ -151,7 +172,11 @@ export function injectedHeaders(
   const preset = getPreset(settings.preset);
 
   if (settings.hostToggles[host] !== false) {
-    headers.push(...preset.inject.map((h) => ({name: h.name, value: h.value})));
+    // Under Auto the directives come from whatever CDN this host was seen on.
+    const injecting =
+      preset.id === 'auto' ? getPreset(settings.detectedHosts[host] ?? 'auto') : preset;
+
+    headers.push(...injecting.inject.map((h) => ({name: h.name, value: h.value})));
   }
   for (const h of enabledHeaders(settings.globalHeaders)) {
     headers.push({name: h.name, value: h.value});

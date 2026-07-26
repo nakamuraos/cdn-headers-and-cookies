@@ -4,6 +4,7 @@ import {Button} from '@/components/Button';
 import {TextInput} from '@/components/Field';
 import {HeaderTable} from '@/components/HeaderTable';
 import {RedirectChain} from '@/components/RedirectChain';
+import {SplitButton, type DataFormat} from '@/components/SplitButton';
 import {filterHeaders, groupResponseHeaders} from '@/lib/headers';
 import {detectPreset, type CdnPreset} from '@/lib/presets';
 import type {CapturedRequest, CdnPresetId, Skin} from '@/types';
@@ -61,12 +62,14 @@ export function ResponsePanel({
   preset,
   skin,
   onExport,
+  onCopy,
   onUsePreset,
 }: {
   request: CapturedRequest;
   preset: CdnPreset;
   skin: Skin;
-  onExport: () => void;
+  onExport: (format: DataFormat) => void;
+  onCopy: (format: DataFormat, headers: typeof request.responseHeaders) => void;
   onUsePreset?: (id: CdnPresetId) => void;
 }): React.JSX.Element {
   const [query, setQuery] = useState('');
@@ -101,7 +104,18 @@ export function ResponsePanel({
           aria-label="Filter response headers"
           className="flex-1"
         />
-        <Button onClick={onExport}>Export</Button>
+        <SplitButton
+          label="Copy"
+          formats={['json', 'csv', 'text']}
+          defaultFormat="json"
+          onPick={(format) => onCopy(format, headers)}
+        />
+        <SplitButton
+          label="Export"
+          formats={['csv', 'json', 'text']}
+          defaultFormat="csv"
+          onPick={onExport}
+        />
       </div>
 
       {hops.length > 1 ? (

@@ -3,6 +3,7 @@ import {useMemo, useState} from 'react';
 import {Button} from '@/components/Button';
 import {Checkbox, Select, TextInput} from '@/components/Field';
 import {Chip} from '@/components/Chip';
+import {SplitButton, type DataFormat} from '@/components/SplitButton';
 import {describeFlags} from '@/lib/cookies';
 import type {CookieRecord} from '@/types';
 
@@ -90,12 +91,14 @@ export function CookiePanel({
   onSave,
   onDelete,
   onExport,
+  onCopy,
 }: {
   cookies: CookieRecord[];
   domain: string;
   onSave: (cookie: CookieRecord) => void;
   onDelete: (cookie: CookieRecord) => void;
-  onExport: () => void;
+  onExport: (format: DataFormat) => void;
+  onCopy: (format: DataFormat) => void;
 }): React.JSX.Element {
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<number | 'new' | null>(null);
@@ -132,7 +135,18 @@ export function CookiePanel({
           className="flex-1"
         />
         <Button onClick={() => setEditing('new')}>Add cookie</Button>
-        <Button onClick={onExport}>Export</Button>
+        <SplitButton
+          label="Copy"
+          formats={['json', 'csv', 'text']}
+          defaultFormat="json"
+          onPick={onCopy}
+        />
+        <SplitButton
+          label="Export"
+          formats={['csv', 'json', 'text']}
+          defaultFormat="csv"
+          onPick={onExport}
+        />
       </div>
 
       <table className="w-full table-fixed border-collapse">

@@ -16,18 +16,23 @@ import {useSettings} from '@/hooks/useSettings';
 import {listCookies, removeCookie, saveCookie} from '@/lib/cookies';
 import {
   cookiesToCsv,
+  cookiesToJson,
+  cookiesToText,
   copyText,
   downloadText,
   headersToCsv,
+  headersToJson,
+  headersToText,
   requestToCurl,
   requestToJson,
   safeFilename,
 } from '@/lib/format';
+import type {DataFormat} from '@/components/SplitButton';
 import {getPreset} from '@/lib/presets';
 import {requestSnapshot} from '@/Background/messaging';
 import {captureRelevance} from '@/lib/hosts';
 import type {CaptureStatus} from '@/types/messages';
-import type {CapturedRequest, CookieRecord, CustomHeader} from '@/types';
+import type {CapturedRequest, CookieRecord, CustomHeader, HeaderEntry} from '@/types';
 
 type Tab = 'request' | 'response' | 'cookies';
 
@@ -167,18 +172,79 @@ export function Popup(): React.JSX.Element {
     );
   };
 
-  const exportTable = (which: 'request' | 'response' | 'cookies'): void => {
+  const copyDone = (): void => notify('Copied to the clipboard');
+  const copyFailed = (): void => notify('Could not copy to the clipboard');
+
+  const copyHeaders = (format: DataFormat, headers: HeaderEntry[]): void => {
     if (!request) return;
+
+    const text =
+      format === 'curl'
+        ? requestToCurl(request)
+        : format === 'csv'
+          ? headersToCsv(headers)
+          : format === 'text'
+            ? headersToText(headers)
+            : headersToJson(headers);
+
+    void copyText(text).then(copyDone, copyFailed);
+  };
+
+  const copyCookies = (format: DataFormat): void => {
+    const text =
+      format === 'csv'
+        ? cookiesToCsv(cookies)
+        : format === 'text'
+          ? cookiesToText(cookies)
+          : cookiesToJson(cookies);
+
+    void copyText(text).then(copyDone, copyFailed);
+  };
+
+  const MIME: Record<DataFormat, string> = {
+    csv: 'text/csv',
+    json: 'application/json',
+    text: 'text/plain',
+    curl: 'text/plain',
+  };
+
+  const EXTENSION: Record<DataFormat, string> = {
+    csv: 'csv',
+    json: 'json',
+    text: 'txt',
+    curl: 'sh',
+  };
+
+  const exportTable = (
+    which: 'request' | 'response' | 'cookies',
+    format: DataFormat
+  ): void => {
+    if (!request) return;
+
+    const headers =
+      which === 'request' ? request.requestHeaders : request.responseHeaders;
 
     const contents =
       which === 'cookies'
-        ? cookiesToCsv(cookies)
-        : headersToCsv(
-            which === 'request' ? request.requestHeaders : request.responseHeaders
-          );
+        ? format === 'json'
+          ? cookiesToJson(cookies)
+          : format === 'text'
+            ? cookiesToText(cookies)
+            : cookiesToCsv(cookies)
+        : format === 'json'
+          ? headersToJson(headers)
+          : format === 'text'
+            ? headersToText(headers)
+            : format === 'curl'
+              ? requestToCurl(request)
+              : headersToCsv(headers);
 
-    downloadText(safeFilename(host, which, 'csv'), contents, 'text/csv');
-    notify('Downloaded as CSV');
+    downloadText(
+      safeFilename(host, which, EXTENSION[format]),
+      contents,
+      MIME[format]
+    );
+    notify(`Downloaded as ${format.toUpperCase()}`);
   };
 
   const reload = (): void => {
@@ -329,7 +395,8 @@ export function Popup(): React.JSX.Element {
           host={host}
           customHeaders={customHeaders}
           onCustomHeadersChange={onCustomHeadersChange}
-          onExport={() => exportTable('request')}
+          onExport={(format) => exportTable('request', format)}
+          onCopy={(format) => copyHeaders(format, request.requestHeaders)}
         />
       ) : null}
 
@@ -338,7 +405,8 @@ export function Popup(): React.JSX.Element {
           request={request}
           preset={preset}
           skin={settings.skin}
-          onExport={() => exportTable('response')}
+          onExport={(format) => exportTable('response', format)}
+          onCopy={copyHeaders}
           onUsePreset={(id) => void update({preset: id})}
         />
       ) : null}
@@ -357,7 +425,8 @@ export function Popup(): React.JSX.Element {
               notify('Could not delete that cookie')
             );
           }}
-          onExport={() => exportTable('cookies')}
+          onExport={(format) => exportTable('cookies', format)}
+          onCopy={copyCookies}
         />
       ) : null}
 

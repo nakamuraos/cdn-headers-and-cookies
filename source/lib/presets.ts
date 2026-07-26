@@ -198,9 +198,10 @@ export const presets: Record<CdnPresetId, CdnPreset> = {
   },
 
   /**
-   * Placed last so it is built from the definitions above: it injects every
-   * debug directive the others ask for and groups every header they know, so a
-   * response is read correctly without having to name its CDN in advance.
+   * Groups every header the named presets know, so a response reads correctly
+   * without being told which CDN served it. It injects nothing of its own:
+   * blanket-injecting every debug directive would put them on every request to
+   * every site. Injection instead follows detection, per host.
    */
   auto: {
     id: 'auto',
@@ -228,10 +229,6 @@ function unique<T>(values: T[]): T[] {
   return [...new Set(values)];
 }
 
-presets.auto.inject = NAMED.flatMap((preset) => preset.inject).filter(
-  (header, index, all) =>
-    all.findIndex((h) => h.name.toLowerCase() === header.name.toLowerCase()) === index
-);
 presets.auto.responseHeaders = unique(NAMED.flatMap((p) => p.responseHeaders));
 presets.auto.cacheStateHeaders = unique(NAMED.flatMap((p) => p.cacheStateHeaders));
 

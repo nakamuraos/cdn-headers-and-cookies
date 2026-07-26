@@ -3,7 +3,8 @@ import browser from 'webextension-polyfill';
 import {hostFromUrl, isCapturableUrl} from '@/lib/hosts';
 import {pushRequest, truncateHeaders} from '@/lib/ringBuffer';
 import {injectedHeaders} from './rules';
-import {readCapture, readSettings, writeCapture} from './store';
+import {patchSettings, readCapture, readSettings, writeCapture} from './store';
+import {detectPreset} from '@/lib/presets';
 import {updateBadge} from './badge';
 import type {CapturedRequest, HeaderEntry, RequestHop} from '@/types';
 
@@ -54,6 +55,24 @@ async function commit(tabId: number, request: CapturedRequest): Promise<void> {
   if (request.type === 'main_frame') {
     await updateBadge(tabId, request);
   }
+}
+
+/**
+ * Records which CDN a host runs, which is what Auto injects for. Written only
+ * on a change, since every write reconciles the rules.
+ */
+async function rememberCdn(host: string, headers: HeaderEntry[]): Promise<void> {
+  if (!host) return;
+
+  const detected = detectPreset(headers.map((h) => h.name));
+  if (!detected) return;
+
+  const settings = await readSettings();
+  if (settings.detectedHosts[host] === detected.id) return;
+
+  await patchSettings({
+    detectedHosts: {...settings.detectedHosts, [host]: detected.id},
+  });
 }
 
 /** Mirrors the final hop onto the request, which is what the tables read. */
@@ -191,8 +210,8 @@ export function registerCapture(): void {
     (details) => {
       if (details.tabId < 0) return;
 
-      enqueue(details.tabId, () =>
-        patchLastHop(details.tabId, details.requestId, {
+      enqueue(details.tabId, async () => {
+        await patchLastHop(details.tabId, details.requestId, {
           // The status line is surfaced as a pseudo-header, as it always has been.
           responseHeaders: truncateHeaders([
             {name: 'Status', value: details.statusLine},
@@ -200,8 +219,13 @@ export function registerCapture(): void {
           ]),
           statusCode: details.statusCode,
           statusLine: details.statusLine,
-        })
-      );
+        });
+
+        await rememberCdn(
+          hostFromUrl(details.url),
+          toEntries(details.responseHeaders)
+        );
+      });
     },
     URL_FILTER,
     ['responseHeaders', 'extraHeaders']

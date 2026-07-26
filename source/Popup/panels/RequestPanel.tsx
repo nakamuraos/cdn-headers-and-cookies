@@ -3,6 +3,7 @@ import {useMemo, useState} from 'react';
 import {Button} from '@/components/Button';
 import {TextInput} from '@/components/Field';
 import {Switch} from '@/components/Switch';
+import {SplitButton, type DataFormat} from '@/components/SplitButton';
 import {HeaderTable, type SortKey, type SortState} from '@/components/HeaderTable';
 import {validateHeader} from '@/Background/rules';
 import {filterHeaders, sortHeaders} from '@/lib/headers';
@@ -58,13 +59,15 @@ export function RequestPanel({
   customHeaders,
   onCustomHeadersChange,
   onExport,
+  onCopy,
 }: {
   request: CapturedRequest;
   preset: CdnPreset;
   host: string;
   customHeaders: CustomHeader[];
   onCustomHeadersChange: (next: CustomHeader[]) => void;
-  onExport: () => void;
+  onExport: (format: DataFormat) => void;
+  onCopy: (format: DataFormat) => void;
 }): React.JSX.Element {
   const [query, setQuery] = useState('');
   // Unsorted by default: the order headers were sent in is itself information.
@@ -98,7 +101,18 @@ export function RequestPanel({
           aria-label="Filter request headers"
           className="flex-1"
         />
-        <Button onClick={onExport}>Export</Button>
+        <SplitButton
+          label="Copy"
+          formats={['json', 'csv', 'text', 'curl']}
+          defaultFormat="json"
+          onPick={onCopy}
+        />
+        <SplitButton
+          label="Export"
+          formats={['csv', 'json', 'text']}
+          defaultFormat="csv"
+          onPick={onExport}
+        />
       </div>
 
       <HeaderTable

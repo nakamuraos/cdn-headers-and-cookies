@@ -11,7 +11,15 @@ import {
 import {detectPreset, getPreset, presetList, presets} from '@/lib/presets';
 import {captureRelevance, hostFromUrl, isCapturableUrl, sameOrigin} from '@/lib/hosts';
 import {MAX_HEADER_VALUE, pushRequest, truncateValue} from '@/lib/ringBuffer';
-import {headersToCsv, requestToCurl, toCsv} from '@/lib/format';
+import {
+  cookiesToJson,
+  cookiesToText,
+  headersToCsv,
+  headersToJson,
+  headersToText,
+  requestToCurl,
+  toCsv,
+} from '@/lib/format';
 import {withInjected} from '@/Background/capture';
 import type {CapturedRequest} from '@/types';
 
@@ -280,8 +288,8 @@ describe('cdn presets', () => {
     expect(getPreset('none' as never).id).toBe('auto');
   });
 
-  it('builds Auto from every named preset', () => {
-    expect(presets.auto.inject.map((h) => h.name)).toEqual(['Pragma', 'Fastly-Debug']);
+  it('builds Auto from every named preset without injecting anything itself', () => {
+    expect(presets.auto.inject).toEqual([]);
     expect(presets.auto.responseHeaders).toContain('cf-cache-status');
     expect(presets.auto.responseHeaders).toContain('x-nf-request-id');
     expect(presets.auto.cacheStateHeaders).toContain('cdn-cache');
@@ -405,5 +413,38 @@ describe('reasonFromLine', () => {
   it('returns nothing when there is no status at all', () => {
     expect(reasonFromLine('HTTP/1.1')).toBe('');
     expect(reasonFromLine('')).toBe('');
+  });
+});
+
+describe('copy and export serialisers', () => {
+  const headers = [
+    {name: 'x-a', value: '1'},
+    {name: 'x-b', value: 'two, three'},
+  ];
+
+  it('writes headers as a JSON object', () => {
+    expect(JSON.parse(headersToJson(headers))).toEqual({'x-a': '1', 'x-b': 'two, three'});
+  });
+
+  it('writes headers as they appear on the wire', () => {
+    expect(headersToText(headers)).toBe('x-a: 1\nx-b: two, three');
+  });
+
+  it('writes cookies as JSON and as name=value pairs', () => {
+    const cookies = [
+      {
+        name: 'a',
+        value: '1',
+        domain: 'x.com',
+        path: '/',
+        secure: true,
+        httpOnly: false,
+        sameSite: 'lax' as const,
+        session: true,
+      },
+    ];
+
+    expect(JSON.parse(cookiesToJson(cookies))[0].name).toBe('a');
+    expect(cookiesToText(cookies)).toBe('a=1');
   });
 });

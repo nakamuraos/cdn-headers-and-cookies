@@ -94,3 +94,23 @@ export function safeFilename(host: string, suffix: string, ext: string): string 
   const stem = host.replace(/[^a-z0-9.-]/gi, '_') || 'capture';
   return `${stem}-${suffix}.${ext}`;
 }
+
+export function headersToJson(headers: HeaderEntry[]): string {
+  return JSON.stringify(
+    Object.fromEntries(headers.map((h) => [h.name, h.value])),
+    null,
+    2
+  );
+}
+
+export function headersToText(headers: HeaderEntry[]): string {
+  return headers.map((h) => `${h.name}: ${h.value}`).join('\n');
+}
+
+export function cookiesToJson(cookies: CookieRecord[]): string {
+  return JSON.stringify(cookies, null, 2);
+}
+
+export function cookiesToText(cookies: CookieRecord[]): string {
+  return cookies.map((c) => `${c.name}=${c.value}`).join('\n');
+}

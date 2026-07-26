@@ -96,6 +96,13 @@ export function Popup(): React.JSX.Element {
     [settings.hostHeaders, host]
   );
 
+  // History-API navigation changes the address without issuing a request, so
+  // the captured document can describe a page that is no longer on screen.
+  const documentRequest = requests.find((r) => r.type === 'main_frame');
+  const stale = Boolean(
+    tabUrl && documentRequest && documentRequest.url !== tabUrl
+  );
+
   const refreshCookies = useCallback(async () => {
     if (!tabUrl.startsWith('http')) return;
     setCookies(await listCookies(tabUrl).catch(() => []));
@@ -233,12 +240,22 @@ export function Popup(): React.JSX.Element {
   return (
     <main className="skin-popup relative flex flex-col overflow-hidden bg-surface text-ink">
       <Toolbar
-        url={request.url}
+        url={tabUrl || request.url}
         settingsOpen={settingsOpen}
         onToggleSettings={() => setSettingsOpen((open) => !open)}
         onReload={reload}
         onExport={onExport}
       />
+
+      {stale ? (
+        <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-warn-soft px-3 py-2 text-warn">
+          <span>
+            This page changed its address without making a request, so these headers
+            are from <span className="skin-mono">{request.url}</span>
+          </span>
+          <Button onClick={reload}>Reload to capture</Button>
+        </div>
+      ) : null}
 
       {settingsOpen ? (
         <SettingsPanel

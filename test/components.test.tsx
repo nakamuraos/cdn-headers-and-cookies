@@ -154,6 +154,83 @@ describe('structural skin differences', () => {
   });
 });
 
+describe('CDN detection', () => {
+  const cloudfront = {
+    ...request,
+    responseHeaders: [
+      {name: 'Status', value: 'HTTP/2 200'},
+      {name: 'x-cache', value: 'Hit from cloudfront'},
+      {name: 'x-amz-cf-pop', value: 'LHR62-P4'},
+      {name: 'content-type', value: 'text/html'},
+    ],
+  };
+
+  it('groups by the CDN that answered, not the selected preset', () => {
+    render(
+      <ResponsePanel
+        request={cloudfront}
+        preset={presets.akamai}
+        skin="modern"
+        onExport={() => undefined}
+      />
+    );
+
+    expect(screen.getByText('CloudFront Response Headers')).toBeInTheDocument();
+    expect(screen.getByText(/Served by/)).toHaveTextContent('CloudFront');
+    expect(screen.getByText(/preset is set to Akamai/)).toBeInTheDocument();
+  });
+
+  it('offers to adopt the detected preset', async () => {
+    const onUsePreset = vi.fn();
+
+    render(
+      <ResponsePanel
+        request={cloudfront}
+        preset={presets.akamai}
+        skin="modern"
+        onExport={() => undefined}
+        onUsePreset={onUsePreset}
+      />
+    );
+
+    await userEvent.click(screen.getByRole('button', {name: 'Use CloudFront'}));
+
+    expect(onUsePreset).toHaveBeenCalledWith('cloudfront');
+  });
+
+  it('does not nag when the preset already agrees', () => {
+    render(
+      <ResponsePanel
+        request={cloudfront}
+        preset={presets.cloudfront}
+        skin="modern"
+        onExport={() => undefined}
+        onUsePreset={() => undefined}
+      />
+    );
+
+    expect(screen.queryByText(/preset is set to/)).toBeNull();
+    expect(screen.queryByRole('button', {name: /^Use /})).toBeNull();
+  });
+
+  it('falls back to the selected preset when no CDN is identifiable', () => {
+    render(
+      <ResponsePanel
+        request={{
+          ...request,
+          responseHeaders: [{name: 'content-type', value: 'text/html'}],
+        }}
+        preset={presets.fastly}
+        skin="modern"
+        onExport={() => undefined}
+      />
+    );
+
+    expect(screen.getByText('Fastly Response Headers')).toBeInTheDocument();
+    expect(screen.queryByText(/Served by/)).toBeNull();
+  });
+});
+
 describe('header ordering', () => {
   const scrambled = {
     ...request,

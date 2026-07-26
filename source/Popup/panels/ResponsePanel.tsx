@@ -4,8 +4,8 @@ import {Button} from '@/components/Button';
 import {TextInput} from '@/components/Field';
 import {HeaderTable} from '@/components/HeaderTable';
 import {filterHeaders, groupResponseHeaders} from '@/lib/headers';
-import type {CdnPreset} from '@/lib/presets';
-import type {CapturedRequest, Skin} from '@/types';
+import {detectPreset, type CdnPreset} from '@/lib/presets';
+import type {CapturedRequest, CdnPresetId, Skin} from '@/types';
 
 function GroupHeading({
   title,
@@ -22,22 +22,65 @@ function GroupHeading({
   );
 }
 
+/**
+ * Says which CDN answered when that can be told from the response, and offers
+ * to adopt it when it is not the preset in use.
+ */
+function DetectedBanner({
+  detected,
+  selected,
+  onUsePreset,
+}: {
+  detected: CdnPreset;
+  selected: CdnPreset;
+  onUsePreset?: (id: CdnPresetId) => void;
+}): React.JSX.Element {
+  const agrees = detected.id === selected.id;
+
+  return (
+    <div
+      className={`flex flex-wrap items-center gap-2 border-b border-line px-3 py-2 ${
+        agrees ? 'text-ink-dim' : 'bg-warn-soft text-warn'
+      }`}
+    >
+      <span>
+        Served by <strong>{detected.label}</strong>
+        {agrees ? null : `, but the preset is set to ${selected.label}`}
+      </span>
+
+      {agrees || !onUsePreset ? null : (
+        <Button onClick={() => onUsePreset(detected.id)}>Use {detected.label}</Button>
+      )}
+    </div>
+  );
+}
+
 export function ResponsePanel({
   request,
   preset,
   skin,
   onExport,
+  onUsePreset,
 }: {
   request: CapturedRequest;
   preset: CdnPreset;
   skin: Skin;
   onExport: () => void;
+  onUsePreset?: (id: CdnPresetId) => void;
 }): React.JSX.Element {
   const [query, setQuery] = useState('');
 
+  // Grouping follows whichever CDN actually answered, so the headers worth
+  // reading stay at the top even when the preset says otherwise.
+  const detected = useMemo(
+    () => detectPreset(request.responseHeaders.map((h) => h.name)),
+    [request.responseHeaders]
+  );
+  const grouping = detected ?? preset;
+
   const {cdn, other} = useMemo(
-    () => groupResponseHeaders(filterHeaders(request.responseHeaders, query), preset),
-    [request.responseHeaders, query, preset]
+    () => groupResponseHeaders(filterHeaders(request.responseHeaders, query), grouping),
+    [request.responseHeaders, query, grouping]
   );
 
   return (
@@ -54,7 +97,11 @@ export function ResponsePanel({
         <Button onClick={onExport}>Export</Button>
       </div>
 
-      <GroupHeading title={`${preset.label} Response Headers`} count={cdn.length} />
+      {detected ? (
+        <DetectedBanner detected={detected} selected={preset} onUsePreset={onUsePreset} />
+      ) : null}
+
+      <GroupHeading title={`${grouping.label} Response Headers`} count={cdn.length} />
 
       {skin === 'classic' ? (
         <p className="skin-sm border-b border-line bg-warn-soft px-3 py-1.5 text-ink-dim">
@@ -65,14 +112,14 @@ export function ResponsePanel({
 
       <HeaderTable
         headers={cdn}
-        preset={preset}
+        preset={grouping}
         showHead={false}
-        emptyLabel={`No ${preset.label} headers on this response.`}
+        emptyLabel={`No ${grouping.label} headers on this response.`}
       />
 
       <GroupHeading title="Default Response Headers" count={other.length} />
 
-      <HeaderTable headers={other} preset={preset} showHead={false} />
+      <HeaderTable headers={other} preset={grouping} showHead={false} />
     </div>
   );
 }

@@ -303,6 +303,7 @@ export function Popup(): React.JSX.Element {
           preset={preset}
           skin={settings.skin}
           onExport={() => exportTable('response')}
+          onUsePreset={(id) => void update({preset: id})}
         />
       ) : null}
 

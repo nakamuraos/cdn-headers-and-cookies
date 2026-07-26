@@ -265,8 +265,8 @@ try {
   check('captured the top-level document request', Boolean(doc), doc?.url ?? '');
 
   check(
-    'captured subresource requests too, not only the document',
-    requests.some((r) => r.type !== 'main_frame'),
+    'records only the document by default, as 2.0.6 did',
+    requests.every((r) => r.type === 'main_frame'),
     [...new Set(requests.map((r) => r.type))].join(', ')
   );
 
@@ -285,6 +285,33 @@ try {
   check(
     'X-Check-Cacheable present in the response',
     names.includes('x-check-cacheable')
+  );
+
+  // --- subresource capture is opt-in ---
+  await sw.evaluate(`
+    (async () => {
+      const {settings = {}} = await chrome.storage.local.get('settings');
+      await chrome.storage.local.set({settings: {...settings, captureSubresources: true}});
+    })()
+  `);
+  await sleep(1000);
+
+  const second = await browser.send('Target.createTarget', {url: `${TARGET_URL}?e2e=1`});
+  check('opened a second page', Boolean(second.result?.targetId));
+  await sleep(12000);
+
+  const afterEnable = await sw.evaluate(`
+    (async () => {
+      const all = await chrome.storage.session.get(null);
+      const keys = Object.keys(all).filter((k) => k.startsWith('capture:'));
+      const reqs = keys.flatMap((k) => all[k]);
+      return [...new Set(reqs.map((r) => r.type))];
+    })()
+  `);
+  check(
+    'enabling subresource capture records more than the document',
+    (afterEnable ?? []).length > 1,
+    (afterEnable ?? []).join(', ')
   );
 
   // --- per-host toggle reconciles rules ---

@@ -197,10 +197,14 @@ export async function applyRules(settings: Settings): Promise<void> {
     const desired = desiredRules(settings);
     const current = await dnr().getDynamicRules();
 
-    await dnr().updateDynamicRules({
-      removeRuleIds: current.map((rule) => rule.id),
-      addRules: desired,
-    });
+    // Removals are applied before additions within a single call, so listing
+    // the ids about to be added guarantees they are free even if the snapshot
+    // above is already stale or rules survive from an earlier version.
+    const removeRuleIds = [
+      ...new Set([...current.map((rule) => rule.id), ...desired.map((rule) => rule.id)]),
+    ];
+
+    await dnr().updateDynamicRules({removeRuleIds, addRules: desired});
   };
 
   const next = pending.then(reconcile, reconcile);

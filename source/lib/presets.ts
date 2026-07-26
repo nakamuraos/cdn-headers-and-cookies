@@ -180,9 +180,31 @@ export const presets: Record<CdnPresetId, CdnPreset> = {
     fingerprint: ['x-varnish'],
   },
 
-  none: {
-    id: 'none',
-    label: 'None',
+  netlify: {
+    id: 'netlify',
+    label: 'Netlify',
+    inject: [],
+    responseHeaders: [
+      // Netlify reports cache state through RFC 9211's Cache-Status.
+      'cache-status',
+      'x-nf-request-id',
+      'x-nf-cache-result',
+      'netlify-vary',
+      'x-nf-srv-version',
+      'age',
+    ],
+    cacheStateHeaders: ['cache-status', 'x-nf-cache-result'],
+    fingerprint: ['x-nf-request-id', 'netlify-vary'],
+  },
+
+  /**
+   * Placed last so it is built from the definitions above: it injects every
+   * debug directive the others ask for and groups every header they know, so a
+   * response is read correctly without having to name its CDN in advance.
+   */
+  auto: {
+    id: 'auto',
+    label: 'Auto',
     inject: [],
     responseHeaders: [],
     cacheStateHeaders: [],
@@ -190,7 +212,7 @@ export const presets: Record<CdnPresetId, CdnPreset> = {
   },
 };
 
-export const presetList = [
+const NAMED = [
   presets.akamai,
   presets.cloudflare,
   presets.fastly,
@@ -198,12 +220,26 @@ export const presetList = [
   presets.azure,
   presets.google,
   presets.bunny,
+  presets.netlify,
   presets.varnish,
-  presets.none,
 ];
 
+function unique<T>(values: T[]): T[] {
+  return [...new Set(values)];
+}
+
+presets.auto.inject = NAMED.flatMap((preset) => preset.inject).filter(
+  (header, index, all) =>
+    all.findIndex((h) => h.name.toLowerCase() === header.name.toLowerCase()) === index
+);
+presets.auto.responseHeaders = unique(NAMED.flatMap((p) => p.responseHeaders));
+presets.auto.cacheStateHeaders = unique(NAMED.flatMap((p) => p.cacheStateHeaders));
+
+export const presetList = [presets.auto, ...NAMED];
+
+/** Falls back to Auto, which also covers ids retired from earlier versions. */
 export function getPreset(id: CdnPresetId): CdnPreset {
-  return presets[id] ?? presets.akamai;
+  return presets[id] ?? presets.auto;
 }
 
 /**
@@ -213,8 +249,7 @@ export function getPreset(id: CdnPresetId): CdnPreset {
 export function detectPreset(headerNames: string[]): CdnPreset | null {
   const present = new Set(headerNames.map((name) => name.toLowerCase()));
 
-  for (const preset of presetList) {
-    if (preset.id === 'none') continue;
+  for (const preset of NAMED) {
     if (preset.fingerprint.some((name) => present.has(name))) return preset;
   }
 

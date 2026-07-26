@@ -3,6 +3,9 @@ import browser from 'webextension-polyfill';
 
 import {Button} from '@/components/Button';
 import {Select} from '@/components/Field';
+import {Chip} from '@/components/Chip';
+import {badgeText} from '@/Background/badge';
+import {statusSeverity} from '@/lib/headers';
 import {SettingsPanel} from './SettingsPanel';
 import {Toolbar, type ExportFormat} from './Toolbar';
 import {CookiePanel} from './panels/CookiePanel';
@@ -103,6 +106,10 @@ export function Popup(): React.JSX.Element {
   // history API or by activating a page the browser prerendered. Same-origin,
   // the captured headers still describe the document on screen; cross-origin,
   // they belong to a site the user has left.
+  // The same summary the toolbar icon carries: the status, or the number of
+  // round trips once the request redirected.
+  const outcome = badgeText(request);
+
   const documentRequest = requests.find((r) => r.type === 'main_frame');
   const relevance = captureRelevance(tabUrl, documentRequest?.url);
   const stale = relevance === 'same-document';
@@ -303,9 +310,14 @@ export function Popup(): React.JSX.Element {
             role="tab"
             aria-selected={tab === id}
             onClick={() => setTab(id)}
-            className="-mb-px flex-1 cursor-pointer border-b-2 border-transparent px-3 py-2.5 text-center text-ink-dim aria-selected:border-accent aria-selected:font-semibold aria-selected:text-accent classic:skin-display classic:h-[35px] classic:w-1/3 classic:rounded-t classic:border classic:border-transparent classic:border-b-line classic:px-0 classic:py-0 classic:text-center classic:text-[14px] classic:font-bold classic:text-accent classic:aria-selected:border-line classic:aria-selected:border-b-transparent classic:aria-selected:bg-surface classic:aria-selected:font-bold classic:aria-selected:text-[#555]"
+            className="-mb-px flex flex-1 cursor-pointer items-center justify-center gap-1.5 border-b-2 border-transparent px-3 py-2.5 text-center text-ink-dim aria-selected:border-accent aria-selected:font-semibold aria-selected:text-accent classic:skin-display classic:h-[35px] classic:w-1/3 classic:rounded-t classic:border classic:border-transparent classic:border-b-line classic:px-0 classic:py-0 classic:text-center classic:text-[14px] classic:font-bold classic:text-accent classic:aria-selected:border-line classic:aria-selected:border-b-transparent classic:aria-selected:bg-surface classic:aria-selected:font-bold classic:aria-selected:text-[#555]"
           >
-            {label}
+            <span>{label}</span>
+            {id === 'response' && outcome ? (
+              <span className="font-normal">
+                <Chip tone={statusSeverity(request.statusCode)}>{outcome}</Chip>
+              </span>
+            ) : null}
           </button>
         ))}
       </div>

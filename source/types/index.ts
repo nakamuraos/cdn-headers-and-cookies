@@ -3,6 +3,7 @@ export type Skin = 'modern' | 'classic';
 export type ThemePreference = 'system' | 'light' | 'dark';
 
 export type CdnPresetId =
+  | 'auto'
   | 'akamai'
   | 'cloudflare'
   | 'fastly'
@@ -10,8 +11,8 @@ export type CdnPresetId =
   | 'azure'
   | 'google'
   | 'bunny'
-  | 'varnish'
-  | 'none';
+  | 'netlify'
+  | 'varnish';
 
 export interface HeaderEntry {
   name: string;
@@ -73,7 +74,7 @@ export interface Settings {
 }
 
 export const defaultSettings: Settings = {
-  preset: 'akamai',
+  preset: 'auto',
   hostToggles: {},
   hostHeaders: {},
   globalHeaders: [],

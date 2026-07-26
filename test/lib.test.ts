@@ -77,11 +77,11 @@ describe('groupResponseHeaders', () => {
     expect(cdn).toHaveLength(1);
   });
 
-  it('puts everything under other when the preset is none', () => {
-    const {cdn, other} = groupResponseHeaders(headers, presets.none);
+  it('groups any known CDN header under Auto', () => {
+    const {cdn, other} = groupResponseHeaders(headers, presets.auto);
 
-    expect(cdn).toHaveLength(0);
-    expect(other).toHaveLength(4);
+    expect(cdn.map((h) => h.name)).toEqual(['x-cache', 'X-Check-Cacheable']);
+    expect(other.map((h) => h.name)).toEqual(['content-type', 'date']);
   });
 });
 
@@ -268,8 +268,27 @@ describe('cdn presets', () => {
     }
   });
 
-  it('falls back to Akamai for an unknown id', () => {
-    expect(getPreset('nope' as never).id).toBe('akamai');
+  it('falls back to Auto for an unknown or retired id', () => {
+    expect(getPreset('nope' as never).id).toBe('auto');
+    expect(getPreset('none' as never).id).toBe('auto');
+  });
+
+  it('builds Auto from every named preset', () => {
+    expect(presets.auto.inject.map((h) => h.name)).toEqual(['Pragma', 'Fastly-Debug']);
+    expect(presets.auto.responseHeaders).toContain('cf-cache-status');
+    expect(presets.auto.responseHeaders).toContain('x-nf-request-id');
+    expect(presets.auto.cacheStateHeaders).toContain('cdn-cache');
+  });
+
+  it('identifies Netlify by its request id', () => {
+    expect(detectPreset(['X-NF-Request-Id'])?.id).toBe('netlify');
+  });
+
+  it('reads a Netlify RFC 9211 cache status', () => {
+    expect(cacheState('cache-status', '"Netlify Edge"; hit', presets.netlify)).toBe('ok');
+    expect(cacheState('cache-status', '"Netlify Edge"; fwd=miss', presets.netlify)).toBe(
+      'crit'
+    );
   });
 });
 

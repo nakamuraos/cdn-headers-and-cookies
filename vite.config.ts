@@ -69,7 +69,7 @@ export default defineConfig(({mode}) => {
       sourcemap: isDevelopment ? 'inline' : false,
       minify: mode === 'production',
 
-      rollupOptions: {
+      rolldownOptions: {
         input: {
           popup: path.resolve(sourcePath, 'Popup/popup.html'),
           options: path.resolve(sourcePath, 'Options/options.html'),
@@ -85,10 +85,18 @@ export default defineConfig(({mode}) => {
             return 'assets/[name]-[hash].[ext]';
           },
           chunkFileNames: 'assets/js/[name]-[hash].chunk.js',
+
+          // Diagnostic statements are stripped by the minifier, so production
+          // bundles ship without console output.
+          minify:
+            mode === 'production' &&
+            ({
+              compress: {dropConsole: true, dropDebugger: true},
+              mangle: true,
+              codegen: true,
+            } as const),
         },
       },
     },
-
-    esbuild: mode === 'production' ? {drop: ['console', 'debugger']} : {},
   };
 });

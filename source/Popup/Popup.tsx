@@ -170,7 +170,7 @@ export function Popup(): React.JSX.Element {
 
   if (status !== 'ok' || !request) {
     return (
-      <main className="flex h-[600px] w-[560px] flex-col bg-surface text-ink">
+      <main className="skin-popup flex flex-col bg-surface text-ink">
         <Toolbar
           url={tabUrl || 'No page'}
           settingsOpen={settingsOpen}
@@ -179,29 +179,59 @@ export function Popup(): React.JSX.Element {
           onExport={() => undefined}
         />
 
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center text-ink-dim">
-          <strong className="text-sm text-ink">
-            {status === 'restricted'
-              ? 'This page cannot be captured'
-              : 'Nothing captured yet'}
-          </strong>
-          <span>
-            {status === 'restricted'
-              ? 'Browser pages such as chrome:// and the extensions gallery are off limits to extensions.'
-              : 'This page loaded before the extension started. Reload it to capture its headers.'}
-          </span>
-          {status === 'restricted' ? null : (
-            <Button variant="primary" onClick={reload}>
-              Reload page
-            </Button>
-          )}
-        </div>
+        {settings.skin === 'classic' ? (
+          // The 2.0.6 empty state, kept word for word.
+          <div className="flex flex-1 flex-col">
+            <div className="skin-display flex h-[60px] items-center justify-center bg-[#eee] text-[20px] font-bold text-[#939597]">
+              CDN Headers &amp; Cookies
+            </div>
+            <div className="skin-display mt-16 text-center text-[100px] leading-none text-[#c0c7c1]">
+              Oops...
+            </div>
+            <div className="skin-display mt-4 text-center text-[22px] text-[#bec4bf] italic">
+              {status === 'restricted' ? (
+                'This page is off limits to extensions.'
+              ) : (
+                <>
+                  I did not catch the fish yet.
+                  <br />
+                  Please reload the current page.
+                </>
+              )}
+            </div>
+            {status === 'restricted' ? null : (
+              <div className="mt-6 text-center">
+                <Button variant="primary" onClick={reload}>
+                  Reload page
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center text-ink-dim">
+            <strong className="text-sm text-ink">
+              {status === 'restricted'
+                ? 'This page cannot be captured'
+                : 'Nothing captured yet'}
+            </strong>
+            <span>
+              {status === 'restricted'
+                ? 'Browser pages such as chrome:// and the extensions gallery are off limits to extensions.'
+                : 'This page loaded before the extension started. Reload it to capture its headers.'}
+            </span>
+            {status === 'restricted' ? null : (
+              <Button variant="primary" onClick={reload}>
+                Reload page
+              </Button>
+            )}
+          </div>
+        )}
       </main>
     );
   }
 
   return (
-    <main className="relative flex h-[600px] w-[560px] flex-col overflow-hidden bg-surface text-ink">
+    <main className="skin-popup relative flex flex-col overflow-hidden bg-surface text-ink">
       <Toolbar
         url={request.url}
         settingsOpen={settingsOpen}
@@ -238,7 +268,7 @@ export function Popup(): React.JSX.Element {
         </span>
       </div>
 
-      <div role="tablist" className="flex shrink-0 gap-0 border-b border-line px-3 classic:gap-0.5">
+      <div role="tablist" className="flex shrink-0 gap-0 border-b border-line px-3 classic:h-[45px] classic:items-end classic:gap-0 classic:px-0">
         {TABS.map(({id, label}) => (
           <button
             key={id}
@@ -246,7 +276,7 @@ export function Popup(): React.JSX.Element {
             role="tab"
             aria-selected={tab === id}
             onClick={() => setTab(id)}
-            className="-mb-px cursor-pointer border-b-2 border-transparent px-3 py-2.5 text-ink-dim aria-selected:border-accent aria-selected:font-semibold aria-selected:text-accent classic:rounded-t classic:border classic:border-transparent classic:px-3 classic:py-1.5 classic:text-accent classic:aria-selected:border-line classic:aria-selected:border-b-surface classic:aria-selected:bg-surface classic:aria-selected:font-normal classic:aria-selected:text-ink"
+            className="-mb-px cursor-pointer border-b-2 border-transparent px-3 py-2.5 text-ink-dim aria-selected:border-accent aria-selected:font-semibold aria-selected:text-accent classic:skin-display classic:h-[35px] classic:w-1/3 classic:rounded-t classic:border classic:border-transparent classic:border-b-line classic:px-0 classic:py-0 classic:text-center classic:text-[14px] classic:font-bold classic:text-accent classic:aria-selected:border-line classic:aria-selected:border-b-transparent classic:aria-selected:bg-surface classic:aria-selected:font-bold classic:aria-selected:text-[#555]"
           >
             {label}
           </button>

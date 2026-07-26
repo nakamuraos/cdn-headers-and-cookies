@@ -11,7 +11,9 @@
 @theme {
   --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
-  --font-classic: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
+  /* The 2.0.6 interface set these two faces explicitly. */
+  --font-classic: 'Segoe UI', Tahoma, sans-serif;
+  --font-classic-display: Corbel, 'Segoe UI', Tahoma, sans-serif;
 
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
@@ -51,6 +53,7 @@
   --crit-soft: #fbe6e4;
 
   --skin-font: var(--font-ui);
+  --skin-display: var(--font-ui);
   --skin-mono: var(--font-mono);
   --skin-radius: 6px;
   --skin-radius-sm: 4px;
@@ -58,6 +61,12 @@
   --skin-text-sm: 11px;
   --skin-row-y: 7px;
   --skin-row-x: 10px;
+  --skin-width: 560px;
+  --skin-height: 600px;
+  /* The classic header bar is a solid band; the modern one is a quiet surface. */
+  --skin-bar: var(--surface-2);
+  --skin-bar-ink: var(--text-dim);
+  --skin-cell-border: transparent;
 
   color-scheme: light;
 }
@@ -107,13 +116,19 @@
   --crit-soft: #f2dede;
 
   --skin-font: var(--font-classic);
+  --skin-display: var(--font-classic-display);
   --skin-mono: var(--font-classic);
-  --skin-radius: 2px;
+  --skin-radius: 4px;
   --skin-radius-sm: 2px;
-  --skin-text: 11px;
-  --skin-text-sm: 10.5px;
-  --skin-row-y: 5px;
-  --skin-row-x: 8px;
+  --skin-text: 12px;
+  --skin-text-sm: 10px;
+  --skin-row-y: 7px;
+  --skin-row-x: 7px;
+  --skin-width: 750px;
+  --skin-height: 600px;
+  --skin-bar: #337ab7;
+  --skin-bar-ink: #ffffff;
+  --skin-cell-border: #dddddd;
 
   color-scheme: light;
 }
@@ -147,6 +162,20 @@ body {
 
 @utility skin-rounded-sm {
   border-radius: var(--skin-radius-sm);
+}
+
+@utility skin-display {
+  font-family: var(--skin-display);
+}
+
+/* The 2.0.6 tables ruled every cell on the right as well as the bottom. */
+@utility skin-cell-rule {
+  border-right: 1px solid var(--skin-cell-border);
+}
+
+@utility skin-popup {
+  width: var(--skin-width);
+  height: var(--skin-height);
 }
 
 :focus-visible {

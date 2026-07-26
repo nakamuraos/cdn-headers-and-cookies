@@ -185,12 +185,26 @@ function dnr(): DynamicRuleApi {
     .declarativeNetRequest;
 }
 
-export async function applyRules(settings: Settings): Promise<void> {
-  const desired = desiredRules(settings);
-  const current = await dnr().getDynamicRules();
+/**
+ * Reconciling reads the installed rules before replacing them, and the worker
+ * has several independent triggers for it. Runs are therefore chained, so one
+ * can never submit ids that another added after it took its snapshot.
+ */
+let pending: Promise<unknown> = Promise.resolve();
 
-  await dnr().updateDynamicRules({
-    removeRuleIds: current.map((rule) => rule.id),
-    addRules: desired,
-  });
+export async function applyRules(settings: Settings): Promise<void> {
+  const reconcile = async (): Promise<void> => {
+    const desired = desiredRules(settings);
+    const current = await dnr().getDynamicRules();
+
+    await dnr().updateDynamicRules({
+      removeRuleIds: current.map((rule) => rule.id),
+      addRules: desired,
+    });
+  };
+
+  const next = pending.then(reconcile, reconcile);
+  pending = next.catch(() => undefined);
+
+  return next;
 }

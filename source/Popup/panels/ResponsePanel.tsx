@@ -15,7 +15,7 @@ function GroupHeading({
   count: number;
 }): React.JSX.Element {
   return (
-    <div className="flex items-center justify-between gap-2 border-b border-line bg-surface-2 px-3 py-2 font-semibold">
+    <div className="flex items-center justify-between gap-2 border-b border-line bg-surface-2 px-3 py-2 font-semibold classic:skin-cell-rule classic:h-[45px] classic:bg-[#efefef] classic:p-[7px] classic:text-[11px] classic:font-bold">
       <span>{title}</span>
       <span className="skin-mono skin-sm font-normal text-ink-dim">{count} headers</span>
     </div>

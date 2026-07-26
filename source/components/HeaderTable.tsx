@@ -31,7 +31,7 @@ function SortableHeading({
       scope="col"
       style={width ? {width} : undefined}
       aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
-      className="skin-cell skin-sm sticky top-0 z-1 cursor-pointer border-b border-line bg-surface text-left font-semibold tracking-wider text-ink-dim uppercase select-none classic:bg-surface-2 classic:tracking-normal classic:text-ink classic:normal-case"
+      className="skin-cell skin-sm sticky top-0 z-1 cursor-pointer border-b border-line bg-surface text-left font-semibold tracking-wider text-ink-dim uppercase select-none classic:skin-display classic:skin-cell-rule classic:bg-[#f5f5f5] classic:text-[12px] classic:font-semibold classic:tracking-normal classic:text-ink classic:normal-case"
     >
       <button
         type="button"
@@ -95,13 +95,11 @@ export function HeaderTable({
                 key={`${header.name}-${index}`}
                 className="classic:odd:bg-surface-2"
               >
-                <td
-                  className="skin-cell skin-mono w-[38%] border-b border-line align-top break-words"
-                >
+                <td className="skin-cell skin-mono w-[38%] border-b border-line align-top break-words classic:skin-cell-rule classic:break-all">
                   {header.name}
                   {header.injected ? <InjectedTag /> : null}
                 </td>
-                <td className="skin-cell skin-mono border-b border-line align-top break-words text-ink-dim classic:text-ink">
+                <td className="skin-cell skin-mono border-b border-line align-top break-words text-ink-dim classic:skin-cell-rule classic:break-all classic:text-ink">
                   {tone === 'none' ? header.value : <Chip tone={tone}>{header.value}</Chip>}
                 </td>
               </tr>

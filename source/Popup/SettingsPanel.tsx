@@ -52,7 +52,7 @@ export function SettingsPanel({
     return (
       <div className="flex shrink-0 flex-col gap-2.5 border-b border-line bg-surface-2 p-3">
         <div className="flex items-center gap-2.5">
-          <label htmlFor="inject-classic" className="min-w-33 font-semibold">
+          <label htmlFor="inject-classic" className="skin-display min-w-33 text-[12px] font-semibold">
             Load {preset.label} Headers
           </label>
           <input
@@ -64,12 +64,12 @@ export function SettingsPanel({
           />
         </div>
 
-        <p className="skin-sm m-0 max-w-[64ch] text-ink-dim">
+        <p className="skin-sm m-0 max-w-[64ch] text-[10px] text-ink-dim">
           Note: Enabling the above checkbox means, the following {preset.label} header
           names will be appended to the Pragma header value and it will be appended to the
           next request.
         </p>
-        <p className="skin-sm m-0 max-w-[64ch] break-words text-ink-dim">
+        <p className="skin-sm m-0 max-w-[64ch] break-words text-[10px] text-ink-dim">
           {preset.inject.map((h) => h.value).join(' ')}
         </p>
 
@@ -79,7 +79,7 @@ export function SettingsPanel({
           onChange={(skin) => onChange({skin})}
         />
 
-        <p className="skin-sm m-0 text-ink-dim">version : {VERSION}</p>
+        <p className="skin-sm m-0 text-right text-[11px] text-ink-dim italic">version : {VERSION}</p>
       </div>
     );
   }

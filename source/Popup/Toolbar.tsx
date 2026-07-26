@@ -67,17 +67,24 @@ export function Toolbar({
   };
 
   return (
-    <div className="flex shrink-0 items-center gap-2.5 border-b border-line bg-surface-2 px-3 py-2.5">
-      <div className="flex min-w-0 flex-1 flex-col">
-        <span className="skin-sm font-semibold tracking-wider text-ink-dim uppercase classic:font-bold classic:tracking-normal classic:normal-case">
-          Requested URL
+    <div className="flex shrink-0 items-center gap-2.5 border-b border-line bg-surface-2 px-3 py-2.5 classic:items-stretch classic:gap-0 classic:border-0 classic:bg-[var(--skin-bar)] classic:p-0">
+      <div className="flex min-w-0 flex-1 flex-col classic:flex-row classic:items-stretch">
+        <span className="skin-sm font-semibold tracking-wider text-ink-dim uppercase classic:skin-display classic:flex classic:shrink-0 classic:items-center classic:p-[7px] classic:text-[12px] classic:font-semibold classic:tracking-normal classic:text-[var(--skin-bar-ink)] classic:normal-case">
+          Requested URL{' '}
+          <span className="hidden classic:inline">&nbsp;:</span>
         </span>
-        <span className="skin-mono truncate" title={url}>
+        <span
+          className="skin-mono truncate classic:flex classic:min-w-0 classic:flex-1 classic:items-center classic:bg-[#efefef] classic:p-[7px] classic:font-medium classic:text-ink"
+          title={url}
+        >
           {url}
         </span>
       </div>
 
-      <div ref={menuRef} className="relative flex shrink-0 gap-1">
+      <div
+        ref={menuRef}
+        className="relative flex shrink-0 gap-1 classic:items-center classic:gap-1.5 classic:bg-[#efefef] classic:pr-3"
+      >
         <Button
           variant="icon"
           onClick={onToggleSettings}

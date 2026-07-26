@@ -22,9 +22,8 @@
 
     "jsx": "react-jsx",
 
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["source/*"]
+      "@/*": ["./source/*"]
     }
   },
   "include": ["source", "test", "vite.config.ts", "vitest.config.ts"]

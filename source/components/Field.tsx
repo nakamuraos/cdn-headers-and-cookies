@@ -17,14 +17,4 @@ export function Select({
   return <select className={`${control} ${className}`} {...props} />;
 }
 
-export function Checkbox({
-  label,
-  ...props
-}: InputHTMLAttributes<HTMLInputElement> & {label?: string}): React.JSX.Element {
-  return (
-    <label className="inline-flex cursor-pointer items-center gap-1.5">
-      <input type="checkbox" className="accent-[var(--accent)]" {...props} />
-      {label ? <span>{label}</span> : null}
-    </label>
-  );
-}
+export {Switch as Checkbox} from './Switch';

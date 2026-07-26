@@ -2,6 +2,7 @@ import {useMemo, useState} from 'react';
 
 import {Button} from '@/components/Button';
 import {TextInput} from '@/components/Field';
+import {Switch} from '@/components/Switch';
 import {HeaderTable, type SortKey, type SortState} from '@/components/HeaderTable';
 import {validateHeader} from '@/Background/rules';
 import {filterHeaders, sortHeaders} from '@/lib/headers';
@@ -22,12 +23,11 @@ function CustomHeaderRow({
   return (
     <div className="border-b border-line px-3 py-1.5">
       <div className="flex items-center gap-1.5">
-        <input
-          type="checkbox"
+        <Switch
+          size="sm"
           checked={header.enabled}
-          onChange={(e) => onChange({...header, enabled: e.target.checked})}
-          aria-label={`Enable ${header.name || 'header'}`}
-          className="accent-[var(--accent)]"
+          onChange={(enabled) => onChange({...header, enabled})}
+          label={`Enable ${header.name || 'header'}`}
         />
         <TextInput
           value={header.name}

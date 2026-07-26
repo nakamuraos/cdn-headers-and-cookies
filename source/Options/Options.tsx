@@ -1,5 +1,6 @@
 import {Button} from '@/components/Button';
 import {Select, TextInput} from '@/components/Field';
+import {Switch} from '@/components/Switch';
 import {useAppearance} from '@/hooks/useAppearance';
 import {useSettings} from '@/hooks/useSettings';
 import {validateHeader} from '@/Background/rules';
@@ -75,12 +76,11 @@ function GlobalHeaders({
           // Rows are positional; a name-based key would remount mid-edit.
           <div key={index} className="flex flex-col gap-1">
             <div className="flex items-center gap-1.5">
-              <input
-                type="checkbox"
+              <Switch
+                size="sm"
                 checked={header.enabled}
-                onChange={(e) => replaceAt(index, {...header, enabled: e.target.checked})}
-                aria-label={`Enable ${header.name || 'header'}`}
-                className="accent-[var(--accent)]"
+                onChange={(enabled) => replaceAt(index, {...header, enabled})}
+                label={`Enable ${header.name || 'header'}`}
               />
               <TextInput
                 value={header.name}
@@ -167,6 +167,17 @@ export function Options(): React.JSX.Element {
       </Group>
 
       <Group title="Capture">
+        <Row
+          label="Watch subresources"
+          help="Off by default, matching 2.0.6, which only ever recorded the page's own document request. Turn it on to also record scripts, images, stylesheets and XHR."
+        >
+          <Switch
+            label="Record every request, not only the document"
+            checked={settings.captureSubresources}
+            onChange={(captureSubresources) => set({captureSubresources})}
+          />
+        </Row>
+
         <Row
           label="Requests kept per tab"
           htmlFor="limit"

@@ -250,6 +250,8 @@ export function Popup(): React.JSX.Element {
         />
       ) : null}
 
+      {/* With subresource capture off there is only ever the document request. */}
+      {settings.captureSubresources ? (
       <div className="flex shrink-0 items-center gap-2 border-b border-line px-3 py-2">
         <Select
           value={selected}
@@ -267,6 +269,7 @@ export function Popup(): React.JSX.Element {
           {requests.length} captured
         </span>
       </div>
+      ) : null}
 
       <div role="tablist" className="flex shrink-0 gap-0 border-b border-line px-3 classic:h-[45px] classic:items-end classic:gap-0 classic:px-0">
         {TABS.map(({id, label}) => (

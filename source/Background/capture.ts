@@ -94,6 +94,8 @@ export function registerCapture(): void {
         const settings = await readSettings();
         const host = hostFromUrl(details.url);
 
+        if (!settings.captureSubresources && details.type !== 'main_frame') return;
+
         // A top-level navigation starts a fresh log, so the popup only ever
         // shows requests belonging to the page currently on screen.
         if (details.type === 'main_frame') {

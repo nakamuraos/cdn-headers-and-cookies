@@ -1,4 +1,5 @@
-import {Checkbox, Select} from '@/components/Field';
+import {Select} from '@/components/Field';
+import {Switch} from '@/components/Switch';
 import {presetList, presets} from '@/lib/presets';
 import type {CdnPresetId, Settings, Skin} from '@/types';
 
@@ -55,13 +56,7 @@ export function SettingsPanel({
           <label htmlFor="inject-classic" className="skin-display min-w-33 text-[12px] font-semibold">
             Load {preset.label} Headers
           </label>
-          <input
-            id="inject-classic"
-            type="checkbox"
-            checked={injectEnabled}
-            onChange={(e) => onToggleInject(e.target.checked)}
-            className="accent-[var(--accent)]"
-          />
+          <Switch id="inject-classic" checked={injectEnabled} onChange={onToggleInject} />
         </div>
 
         <p className="skin-sm m-0 max-w-[64ch] text-[10px] text-ink-dim">
@@ -72,6 +67,17 @@ export function SettingsPanel({
         <p className="skin-sm m-0 max-w-[64ch] break-words text-[10px] text-ink-dim">
           {preset.inject.map((h) => h.value).join(' ')}
         </p>
+
+        <div className="flex items-center gap-2.5">
+          <label htmlFor="subres-classic" className="skin-display min-w-33 text-[12px] font-semibold">
+            Watch Subresources
+          </label>
+          <Switch
+            id="subres-classic"
+            checked={settings.captureSubresources}
+            onChange={(captureSubresources) => onChange({captureSubresources})}
+          />
+        </div>
 
         <SkinField
           id="skin-classic"
@@ -102,10 +108,19 @@ export function SettingsPanel({
           ))}
         </Select>
 
-        <Checkbox
+        <Switch
           label={`Inject on ${host}`}
           checked={injectEnabled}
-          onChange={(e) => onToggleInject(e.target.checked)}
+          onChange={onToggleInject}
+        />
+      </div>
+
+      <div className="flex items-center gap-2.5">
+        <span className="min-w-33 font-semibold">Capture</span>
+        <Switch
+          label="Watch subresources"
+          checked={settings.captureSubresources}
+          onChange={(captureSubresources) => onChange({captureSubresources})}
         />
       </div>
 

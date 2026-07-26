@@ -43,6 +43,8 @@ export interface Settings {
   /** Custom request headers applied to every host. */
   globalHeaders: CustomHeader[];
   captureLimit: number;
+  /** When off, only the top-level document request is recorded, as in 2.0.6. */
+  captureSubresources: boolean;
   skin: Skin;
   theme: ThemePreference;
 }
@@ -53,6 +55,7 @@ export const defaultSettings: Settings = {
   hostHeaders: {},
   globalHeaders: [],
   captureLimit: 200,
+  captureSubresources: false,
   skin: 'modern',
   theme: 'system',
 };

@@ -50,12 +50,12 @@ function CookieEditor({
             <Checkbox
               label="Secure"
               checked={draft.secure}
-              onChange={(e) => setDraft({...draft, secure: e.target.checked})}
+              onChange={(secure) => setDraft({...draft, secure})}
             />
             <Checkbox
               label="HttpOnly"
               checked={draft.httpOnly}
-              onChange={(e) => setDraft({...draft, httpOnly: e.target.checked})}
+              onChange={(httpOnly) => setDraft({...draft, httpOnly})}
             />
             <Select
               value={draft.sameSite}

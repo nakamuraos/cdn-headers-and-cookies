@@ -20,17 +20,17 @@ function SortableHeading({
 }: {
   label: string;
   sortKey: SortKey;
-  sort: SortState;
+  sort: SortState | null | undefined;
   onSort: (key: SortKey) => void;
   width?: string;
 }): React.JSX.Element {
-  const active = sort.key === sortKey;
+  const active = sort?.key === sortKey;
 
   return (
     <th
       scope="col"
       style={width ? {width} : undefined}
-      aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+      aria-sort={active ? (sort?.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
       className="skin-cell skin-sm sticky top-0 z-1 cursor-pointer border-b border-line bg-surface text-left font-semibold tracking-wider text-ink-dim uppercase select-none classic:skin-display classic:skin-cell-rule classic:bg-[#f5f5f5] classic:text-[12px] classic:font-semibold classic:tracking-normal classic:text-ink classic:normal-case"
     >
       <button
@@ -40,7 +40,7 @@ function SortableHeading({
       >
         {label}
         <span className={`ml-1 text-[9px] ${active ? 'text-accent' : 'text-line-strong'}`}>
-          {active && sort.dir === 'desc' ? '▼' : '▲'}
+          {active && sort?.dir === 'desc' ? '▼' : '▲'}
         </span>
       </button>
     </th>
@@ -57,14 +57,14 @@ export function HeaderTable({
 }: {
   headers: HeaderEntry[];
   preset: CdnPreset;
-  sort?: SortState;
+  sort?: SortState | null;
   onSort?: (key: SortKey) => void;
   emptyLabel?: string;
   showHead?: boolean;
 }): React.JSX.Element {
   return (
     <table className="w-full table-fixed border-collapse">
-      {showHead && sort && onSort ? (
+      {showHead && onSort ? (
         <thead>
           <tr>
             <SortableHeading

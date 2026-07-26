@@ -67,17 +67,20 @@ export function RequestPanel({
   onExport: () => void;
 }): React.JSX.Element {
   const [query, setQuery] = useState('');
-  const [sort, setSort] = useState<SortState>({key: 'name', dir: 'asc'});
+  // Unsorted by default: the order headers were sent in is itself information.
+  const [sort, setSort] = useState<SortState | null>(null);
 
-  const rows = useMemo(
-    () => sortHeaders(filterHeaders(request.requestHeaders, query), sort.key, sort.dir),
-    [request.requestHeaders, query, sort]
-  );
+  const rows = useMemo(() => {
+    const filtered = filterHeaders(request.requestHeaders, query);
+    return sort ? sortHeaders(filtered, sort.key, sort.dir) : filtered;
+  }, [request.requestHeaders, query, sort]);
 
+  // Cycles ascending, descending, then back to the order they arrived in.
   const toggleSort = (key: SortKey): void => {
-    setSort((prev) =>
-      prev.key === key ? {key, dir: prev.dir === 'asc' ? 'desc' : 'asc'} : {key, dir: 'asc'}
-    );
+    setSort((prev) => {
+      if (prev?.key !== key) return {key, dir: 'asc'};
+      return prev.dir === 'asc' ? {key, dir: 'desc'} : null;
+    });
   };
 
   const replaceAt = (index: number, next: CustomHeader): void => {

@@ -154,6 +154,62 @@ describe('structural skin differences', () => {
   });
 });
 
+describe('header ordering', () => {
+  const scrambled = {
+    ...request,
+    requestHeaders: [
+      {name: 'zeta', value: '1'},
+      {name: 'alpha', value: '2'},
+      {name: 'mid', value: '3'},
+    ],
+  };
+
+  const names = (): string[] =>
+    screen
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => row.querySelector('td')?.textContent ?? '');
+
+  it('keeps the order headers were sent in until a column is chosen', () => {
+    render(
+      <RequestPanel
+        request={scrambled}
+        preset={presets.akamai}
+        host="example.com"
+        customHeaders={[]}
+        onCustomHeadersChange={() => undefined}
+        onExport={() => undefined}
+      />
+    );
+
+    expect(names()).toEqual(['zeta', 'alpha', 'mid']);
+  });
+
+  it('cycles ascending, descending, then back to the original order', async () => {
+    render(
+      <RequestPanel
+        request={scrambled}
+        preset={presets.akamai}
+        host="example.com"
+        customHeaders={[]}
+        onCustomHeadersChange={() => undefined}
+        onExport={() => undefined}
+      />
+    );
+
+    const heading = screen.getByRole('button', {name: /Name/});
+
+    await userEvent.click(heading);
+    expect(names()).toEqual(['alpha', 'mid', 'zeta']);
+
+    await userEvent.click(heading);
+    expect(names()).toEqual(['zeta', 'mid', 'alpha']);
+
+    await userEvent.click(heading);
+    expect(names()).toEqual(['zeta', 'alpha', 'mid']);
+  });
+});
+
 describe('custom header editing', () => {
   it('appends a blank row when a header is added', async () => {
     const onChange = vi.fn();

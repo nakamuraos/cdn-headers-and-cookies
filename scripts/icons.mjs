@@ -10,7 +10,7 @@ import process from 'node:process';
 import sharp from 'sharp';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
-const ICONS = path.join(ROOT, 'source', 'public', 'assets', 'icons');
+const ICONS = path.join(ROOT, 'src', 'public', 'assets', 'icons');
 // Kept outside the copied public directory so it does not ship in the build.
 const SOURCE = path.join(ROOT, 'assets', 'logo.png');
 

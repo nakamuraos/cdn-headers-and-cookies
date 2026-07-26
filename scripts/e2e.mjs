@@ -109,7 +109,7 @@ const results = [];
 let failures = 0;
 
 function check(name, ok, detail = '') {
-  results.push(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ` — ${detail}` : ''}`);
+  results.push(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ` - ${detail}` : ''}`);
   if (!ok) failures += 1;
 }
 

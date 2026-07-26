@@ -4,7 +4,7 @@
 
 # CDN Headers &amp; Cookies
 
-**See what the edge actually did — request headers, response headers, CDN cache
+**See what the edge actually did - request headers, response headers, CDN cache
 state and cookies, for every request on the page.**
 
 [![Manifest V3](https://img.shields.io/badge/manifest-v3-0078d4)](https://developer.chrome.com/docs/extensions/develop/migrate)
@@ -14,7 +14,7 @@ state and cookies, for every request on the page.**
 [![TypeScript](https://img.shields.io/badge/typescript-5.9-3178c6)](https://www.typescriptlang.org)
 [![Tailwind CSS 4](https://img.shields.io/badge/tailwind-4-38bdf8)](https://tailwindcss.com)
 [![Tests](https://img.shields.io/badge/tests-passing-078f00)](test)
-[![Licence](https://img.shields.io/badge/licence-MIT-3b3b3b)](#licence)
+[![Licence](https://img.shields.io/badge/licence-Apache--2.0-3b3b3b)](#licence)
 
 </div>
 
@@ -23,8 +23,7 @@ state and cookies, for every request on the page.**
 A Manifest V3 rewrite of
 [CDN Headers &amp; Cookies 2.0.6](https://chrome.google.com/webstore/detail/cdn-headers-cookies/obldlamadkihjlkdjblncejeblbogmnb),
 whose last release was in 2019. No public source existed for the original, so
-this is a reimplementation rather than a fork. The design is written up in
-[docs/superpowers/specs](docs/superpowers/specs/2026-07-27-cdn-headers-cookies-mv3-design.md).
+this is a reimplementation rather than a fork.
 
 ## What it does
 
@@ -88,18 +87,18 @@ maintaining a second code path against Firefox's blocking `webRequest`.
 ## Development
 
 ```bash
-npm install
+yarn install
 
-npm run dev:chrome      # rebuild on change into extension/chrome
-npm run dev:firefox     # rebuild on change into extension/firefox
+yarn dev:chrome      # rebuild on change into extension/chrome
+yarn dev:firefox     # rebuild on change into extension/firefox
 
-npm run build           # production build for both browsers
-npm test                # unit and component tests
-npm run test:e2e        # drives a real Chrome against a live CDN (needs network)
-npm run lint
+yarn build           # production build for both browsers
+yarn test            # unit and component tests
+yarn test:e2e        # drives a real Chrome against a live CDN (needs network)
+yarn lint
 
-npm run icons           # regenerate the extension icons from assets/logo.png
-npm run screenshots     # regenerate the store screenshots (needs network)
+yarn icons           # regenerate the extension icons from assets/logo.png
+yarn screenshots     # regenerate the store screenshots (needs network)
 ```
 
 Load the result as an unpacked extension: `chrome://extensions` with developer
@@ -109,15 +108,22 @@ mode on, or `about:debugging` in Firefox, pointing at `extension/chrome` or
 ## Layout
 
 ```
-source/
-  Background/    service worker: capture, DNR rules, storage, messaging
-  Popup/         popup UI and its three panels
-  Options/       settings page
-  components/    shared primitives, written once against the skin tokens
-  lib/           pure logic: presets, header grouping, ring buffer, export
-  styles/        Tailwind entry and the skin and theme token blocks
-scripts/         icon generation, store screenshots, end-to-end checks
-test/            unit and component tests
+.
+├── src/
+│   ├── Background/      # service worker: capture, DNR rules, storage, messaging
+│   ├── Popup/           # popup UI and its three panels
+│   ├── Options/         # settings page
+│   ├── components/      # shared primitives, written once against the skin tokens
+│   ├── hooks/           # appearance and settings hooks
+│   ├── lib/             # pure logic: presets, header grouping, ring buffer, export
+│   ├── styles/          # Tailwind entry and the skin and theme token blocks
+│   ├── types/           # shared types and message contracts
+│   └── manifest.json    # manifest template, built per browser
+├── scripts/             # icon generation, store screenshots, end-to-end checks
+├── test/                # unit and component tests
+├── assets/              # logo art the icons are generated from
+├── docs/screenshots/    # store screenshots
+└── extension/           # build output: extension/chrome, extension/firefox
 ```
 
 `lib/` and `Background/rules.ts` hold the logic worth testing and are free of
@@ -135,4 +141,4 @@ which is served by Fastly.
 
 ## Licence
 
-MIT.
+[Apache License 2.0](LICENSE).

@@ -13,7 +13,7 @@
     "dev:firefox": "cross-env TARGET_BROWSER=firefox vite build --config vite.config.ts --mode development --watch",
     "build:chrome": "cross-env TARGET_BROWSER=chrome vite build --config vite.config.ts",
     "build:firefox": "cross-env TARGET_BROWSER=firefox vite build --config vite.config.ts",
-    "build": "npm run build:chrome && npm run build:firefox",
+    "build": "yarn build:chrome && yarn build:firefox",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",

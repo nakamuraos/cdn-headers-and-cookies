@@ -13,7 +13,7 @@ import type {Plugin} from 'vite';
 
 export default defineConfig(({mode}) => {
   const isDevelopment = mode !== 'production';
-  const sourcePath = path.resolve(__dirname, 'source');
+  const srcPath = path.resolve(__dirname, 'src');
   const destPath = path.resolve(__dirname, 'extension');
   const targetBrowser = process.env.TARGET_BROWSER || 'chrome';
 
@@ -22,13 +22,13 @@ export default defineConfig(({mode}) => {
     targetBrowser === 'firefox' ? `${targetBrowser}.xpi` : `${targetBrowser}.zip`;
 
   return {
-    root: sourcePath,
+    root: srcPath,
 
-    publicDir: path.resolve(sourcePath, 'public'),
+    publicDir: path.resolve(srcPath, 'public'),
 
     resolve: {
       alias: {
-        '@': sourcePath,
+        '@': srcPath,
       },
     },
 
@@ -71,9 +71,9 @@ export default defineConfig(({mode}) => {
 
       rolldownOptions: {
         input: {
-          popup: path.resolve(sourcePath, 'Popup/popup.html'),
-          options: path.resolve(sourcePath, 'Options/options.html'),
-          background: path.resolve(sourcePath, 'Background/index.ts'),
+          popup: path.resolve(srcPath, 'Popup/popup.html'),
+          options: path.resolve(srcPath, 'Options/options.html'),
+          background: path.resolve(srcPath, 'Background/index.ts'),
         },
 
         output: {

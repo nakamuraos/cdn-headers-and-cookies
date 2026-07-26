@@ -23,8 +23,8 @@
     "jsx": "react-jsx",
 
     "paths": {
-      "@/*": ["./source/*"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["source", "test", "vite.config.ts", "vitest.config.ts"]
+  "include": ["src", "test", "vite.config.ts", "vitest.config.ts"]
 }

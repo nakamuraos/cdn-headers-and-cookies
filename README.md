@@ -41,6 +41,7 @@ npm run build           # production build for both browsers
 npm test                # unit and component tests
 npm run test:e2e        # drives a real Chrome against a live CDN (needs network)
 npm run lint
+npm run icons           # regenerate the extension icons from assets/logo.png
 ```
 
 Load the result as an unpacked extension: `chrome://extensions` with developer

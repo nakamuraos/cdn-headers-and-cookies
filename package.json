@@ -18,7 +18,8 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test:e2e": "node scripts/e2e.mjs"
+    "test:e2e": "node scripts/e2e.mjs",
+    "icons": "node scripts/icons.mjs"
   },
   "dependencies": {
     "react": "^19.2.3",
@@ -47,6 +48,7 @@
     "globals": "^17.0.0",
     "jsdom": "^29.1.1",
     "prettier": "^3.7.4",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4.1.18",
     "typescript": "^6.0.3",
     "vite": "^8.1.5",

@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest';
 
 import {cacheState, groupResponseHeaders, sortHeaders, statusSeverity} from '@/lib/headers';
 import {detectPreset, getPreset, presetList, presets} from '@/lib/presets';
-import {hostFromUrl, isCapturableUrl} from '@/lib/hosts';
+import {captureRelevance, hostFromUrl, isCapturableUrl, sameOrigin} from '@/lib/hosts';
 import {MAX_HEADER_VALUE, pushRequest, truncateValue} from '@/lib/ringBuffer';
 import {headersToCsv, requestToCurl, toCsv} from '@/lib/format';
 import {withInjected} from '@/Background/capture';
@@ -293,5 +293,46 @@ describe('cache state across presets', () => {
     expect(cacheState('x-cache', 'RefreshHit from cloudfront', presets.cloudfront)).toBe('warn');
     expect(cacheState('cdn-cache', 'BYPASS', presets.bunny)).toBe('crit');
     expect(cacheState('x-goog-cache-status', 'hit', presets.google)).toBe('ok');
+  });
+});
+
+describe('sameOrigin', () => {
+  it('accepts a different path on the same origin', () => {
+    expect(sameOrigin('https://x.com/a?q=1', 'https://x.com/b')).toBe(true);
+  });
+
+  it('rejects a different host, scheme or port', () => {
+    expect(sameOrigin('https://x.com/', 'https://y.com/')).toBe(false);
+    expect(sameOrigin('https://x.com/', 'http://x.com/')).toBe(false);
+    expect(sameOrigin('https://x.com/', 'https://x.com:8443/')).toBe(false);
+  });
+
+  it('rejects anything unparseable rather than guessing', () => {
+    expect(sameOrigin('not a url', 'https://x.com/')).toBe(false);
+  });
+});
+
+describe('captureRelevance', () => {
+  it('is current when the captured document is the page on screen', () => {
+    expect(captureRelevance('https://x.com/a', 'https://x.com/a')).toBe('current');
+  });
+
+  it('treats a history-API navigation as the same document', () => {
+    expect(captureRelevance('https://x.com/search?q=1', 'https://x.com/')).toBe(
+      'same-document'
+    );
+  });
+
+  it('treats a capture from another site as foreign', () => {
+    // What an activated prerender leaves behind: the tab moved to a new site
+    // without the extension seeing a request for it.
+    expect(captureRelevance('https://www.google.com/search?q=ahihi', 'https://ahihi.vn/')).toBe(
+      'foreign'
+    );
+  });
+
+  it('is current when there is nothing to compare', () => {
+    expect(captureRelevance('https://x.com/', undefined)).toBe('current');
+    expect(captureRelevance('', 'https://x.com/')).toBe('current');
   });
 });

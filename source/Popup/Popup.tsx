@@ -22,6 +22,7 @@ import {
 } from '@/lib/format';
 import {getPreset} from '@/lib/presets';
 import {requestSnapshot} from '@/Background/messaging';
+import {captureRelevance} from '@/lib/hosts';
 import type {CaptureStatus} from '@/types/messages';
 import type {CapturedRequest, CookieRecord, CustomHeader} from '@/types';
 
@@ -98,10 +99,14 @@ export function Popup(): React.JSX.Element {
 
   // History-API navigation changes the address without issuing a request, so
   // the captured document can describe a page that is no longer on screen.
+  // A page can change its address without issuing a request, through the
+  // history API or by activating a page the browser prerendered. Same-origin,
+  // the captured headers still describe the document on screen; cross-origin,
+  // they belong to a site the user has left.
   const documentRequest = requests.find((r) => r.type === 'main_frame');
-  const stale = Boolean(
-    tabUrl && documentRequest && documentRequest.url !== tabUrl
-  );
+  const relevance = captureRelevance(tabUrl, documentRequest?.url);
+  const stale = relevance === 'same-document';
+  const foreign = relevance === 'foreign';
 
   const refreshCookies = useCallback(async () => {
     if (!tabUrl.startsWith('http')) return;
@@ -175,7 +180,7 @@ export function Popup(): React.JSX.Element {
     window.close();
   };
 
-  if (status !== 'ok' || !request) {
+  if (status !== 'ok' || !request || foreign) {
     return (
       <main className="skin-popup flex flex-col overflow-hidden bg-surface text-ink">
         <Toolbar
@@ -224,7 +229,9 @@ export function Popup(): React.JSX.Element {
             <span>
               {status === 'restricted'
                 ? 'Browser pages such as chrome:// and the extensions gallery are off limits to extensions.'
-                : 'This page loaded before the extension started. Reload it to capture its headers.'}
+                : foreign
+                  ? 'The browser opened this page without making a request the extension could see, which happens when it was prerendered. Reload it to capture its headers.'
+                  : 'This page loaded before the extension started. Reload it to capture its headers.'}
             </span>
             {status === 'restricted' ? null : (
               <Button variant="primary" onClick={reload}>

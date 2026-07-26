@@ -1,6 +1,13 @@
 import {describe, expect, it} from 'vitest';
 
-import {cacheState, groupResponseHeaders, sortHeaders, statusSeverity} from '@/lib/headers';
+import {
+  cacheState,
+  groupResponseHeaders,
+  reasonFromLine,
+  sortHeaders,
+  statusFromLine,
+  statusSeverity,
+} from '@/lib/headers';
 import {detectPreset, getPreset, presetList, presets} from '@/lib/presets';
 import {captureRelevance, hostFromUrl, isCapturableUrl, sameOrigin} from '@/lib/hosts';
 import {MAX_HEADER_VALUE, pushRequest, truncateValue} from '@/lib/ringBuffer';
@@ -354,5 +361,38 @@ describe('captureRelevance', () => {
   it('is current when there is nothing to compare', () => {
     expect(captureRelevance('https://x.com/', undefined)).toBe('current');
     expect(captureRelevance('', 'https://x.com/')).toBe('current');
+  });
+});
+
+describe('statusFromLine', () => {
+  it('reads the code out of a status line', () => {
+    expect(statusFromLine('HTTP/1.1 200 OK')).toBe(200);
+    expect(statusFromLine('HTTP/2 404 Not Found')).toBe(404);
+    expect(statusFromLine('HTTP/1.1 301 Moved Permanently')).toBe(301);
+    expect(statusFromLine('HTTP/1.1 503 Service Unavailable')).toBe(503);
+  });
+
+  it('ignores a line carrying no status', () => {
+    expect(statusFromLine('HTTP/1.1')).toBeUndefined();
+    expect(statusFromLine('')).toBeUndefined();
+  });
+
+  it('does not mistake the protocol version for a code', () => {
+    // "HTTP/2" must not read as 2, nor "1.1" as part of a code.
+    expect(statusFromLine('HTTP/2 204 No Content')).toBe(204);
+  });
+});
+
+describe('reasonFromLine', () => {
+  it('returns the reason phrase alone', () => {
+    expect(reasonFromLine('HTTP/1.1 404 Not Found')).toBe('Not Found');
+    expect(reasonFromLine('HTTP/1.1 200 OK')).toBe('OK');
+    expect(reasonFromLine('HTTP/1.1 301 Moved Permanently')).toBe('Moved Permanently');
+  });
+
+  it('returns nothing when the line carries no phrase', () => {
+    expect(reasonFromLine('HTTP/2 200')).toBe('');
+    expect(reasonFromLine('HTTP/1.1')).toBe('');
+    expect(reasonFromLine('')).toBe('');
   });
 });

@@ -1,5 +1,11 @@
 import {Chip, InjectedTag} from './Chip';
-import {cacheState} from '@/lib/headers';
+import {
+  STATUS_HEADER,
+  cacheState,
+  reasonFromLine,
+  statusFromLine,
+  statusSeverity,
+} from '@/lib/headers';
 import type {CdnPreset} from '@/lib/presets';
 import type {HeaderEntry} from '@/types';
 
@@ -88,7 +94,12 @@ export function HeaderTable({
           </tr>
         ) : (
           headers.map((header, index) => {
-            const tone = cacheState(header.name, header.value, preset);
+            // The status line is toned by its class rather than by cache state.
+            const isStatus = header.name.toLowerCase() === STATUS_HEADER;
+            const tone = isStatus
+              ? statusSeverity(statusFromLine(header.value))
+              : cacheState(header.name, header.value, preset);
+            const reason = isStatus ? reasonFromLine(header.value) : '';
 
             return (
               <tr
@@ -100,7 +111,20 @@ export function HeaderTable({
                   {header.injected ? <InjectedTag /> : null}
                 </td>
                 <td className="skin-cell skin-mono skin-cell-rule border-b border-line align-top break-words classic:break-all">
-                  {tone === 'none' ? header.value : <Chip tone={tone}>{header.value}</Chip>}
+                  {isStatus ? (
+                    <>
+                      {header.value}
+                      {reason ? (
+                        <span className="ml-1.5">
+                          <Chip tone={tone}>{reason}</Chip>
+                        </span>
+                      ) : null}
+                    </>
+                  ) : tone === 'none' ? (
+                    header.value
+                  ) : (
+                    <Chip tone={tone}>{header.value}</Chip>
+                  )}
                 </td>
               </tr>
             );

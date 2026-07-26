@@ -95,3 +95,23 @@ export function filterHeaders(headers: HeaderEntry[], query: string): HeaderEntr
     (h) => h.name.toLowerCase().includes(q) || h.value.toLowerCase().includes(q)
   );
 }
+
+/** The pseudo-header the capture prepends to every response. */
+export const STATUS_HEADER = 'status';
+
+/**
+ * Splits a status line such as "HTTP/1.1 404 Not Found" into its code and
+ * reason phrase, so the row can be toned the way the toolbar icon is and the
+ * phrase can be surfaced on its own.
+ */
+export function statusFromLine(value: string): number | undefined {
+  const match = /\b([1-5]\d{2})\b/.exec(value);
+
+  return match ? Number(match[1]) : undefined;
+}
+
+export function reasonFromLine(value: string): string {
+  const match = /\b[1-5]\d{2}\b\s+(.+)$/.exec(value.trim());
+
+  return match?.[1]?.trim() ?? '';
+}

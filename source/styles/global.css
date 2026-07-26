@@ -69,7 +69,7 @@
   /* The classic header bar is a solid band; the modern one is a quiet surface. */
   --skin-bar: var(--surface-2);
   --skin-bar-ink: var(--text-dim);
-  --skin-cell-border: transparent;
+  --skin-cell-border: var(--border);
 
   color-scheme: light;
 }

@@ -1,0 +1,164 @@
+@import 'tailwindcss';
+
+/*
+  Skins are selected by a data-skin attribute on the root element and expose the
+  same token names, so components are written once against the tokens. The
+  classic skin is light-only; dark tokens are only ever applied under modern.
+*/
+@custom-variant classic (&:where([data-skin='classic'], [data-skin='classic'] *));
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme {
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --font-classic: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
+
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--text);
+  --color-ink-dim: var(--text-dim);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-crit: var(--crit);
+  --color-crit-soft: var(--crit-soft);
+}
+
+/* modern, light */
+:root {
+  --surface: #ffffff;
+  --surface-2: #eef1f5;
+  --surface-3: #e4e9f0;
+  --border: #d8dee6;
+  --border-strong: #c2cbd6;
+  --text: #14181d;
+  --text-dim: #5b6675;
+  --accent: #4b6bfb;
+  --accent-soft: #e8ecff;
+  --accent-ink: #ffffff;
+  --ok: #1a9c5b;
+  --ok-soft: #e2f4ea;
+  --warn: #b07a09;
+  --warn-soft: #fbf0d8;
+  --crit: #d0453b;
+  --crit-soft: #fbe6e4;
+
+  --skin-font: var(--font-ui);
+  --skin-mono: var(--font-mono);
+  --skin-radius: 6px;
+  --skin-radius-sm: 4px;
+  --skin-text: 12.5px;
+  --skin-text-sm: 11px;
+  --skin-row-y: 7px;
+  --skin-row-x: 10px;
+
+  color-scheme: light;
+}
+
+/* modern, dark */
+:root[data-theme='dark'] {
+  --surface: #161b22;
+  --surface-2: #1d2430;
+  --surface-3: #252e3b;
+  --border: #2a323d;
+  --border-strong: #3a4553;
+  --text: #e6ebf2;
+  --text-dim: #8b97a8;
+  --accent: #7c92ff;
+  --accent-soft: #1e2540;
+  --accent-ink: #0e1116;
+  --ok: #35c07d;
+  --ok-soft: #14301f;
+  --warn: #d9a441;
+  --warn-soft: #322611;
+  --crit: #f0736a;
+  --crit-soft: #341b1a;
+
+  color-scheme: dark;
+}
+
+/*
+  Classic recreates the 2.0.6 interface, which only ever existed in light. It
+  is declared last so it wins over the theme blocks at equal specificity.
+*/
+:root[data-skin='classic'] {
+  --surface: #ffffff;
+  --surface-2: #f9f9f9;
+  --surface-3: #f0f0f0;
+  --border: #dddddd;
+  --border-strong: #cccccc;
+  --text: #333333;
+  --text-dim: #777777;
+  --accent: #337ab7;
+  --accent-soft: #eaf2f8;
+  --accent-ink: #ffffff;
+  --ok: #3c763d;
+  --ok-soft: #dff0d8;
+  --warn: #8a6d3b;
+  --warn-soft: #fcf8e3;
+  --crit: #a94442;
+  --crit-soft: #f2dede;
+
+  --skin-font: var(--font-classic);
+  --skin-mono: var(--font-classic);
+  --skin-radius: 2px;
+  --skin-radius-sm: 2px;
+  --skin-text: 11px;
+  --skin-text-sm: 10.5px;
+  --skin-row-y: 5px;
+  --skin-row-x: 8px;
+
+  color-scheme: light;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--skin-font);
+  font-size: var(--skin-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Skin-driven primitives that would otherwise need a utility on every element */
+@utility skin-mono {
+  font-family: var(--skin-mono);
+}
+
+@utility skin-sm {
+  font-size: var(--skin-text-sm);
+}
+
+@utility skin-cell {
+  padding: var(--skin-row-y) var(--skin-row-x);
+}
+
+@utility skin-rounded {
+  border-radius: var(--skin-radius);
+}
+
+@utility skin-rounded-sm {
+  border-radius: var(--skin-radius-sm);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

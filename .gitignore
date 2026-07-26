@@ -1,0 +1,9 @@
+node_modules/
+extension/
+*.zip
+*.xpi
+*.log
+
+# macOS
+.DS_Store
+._*

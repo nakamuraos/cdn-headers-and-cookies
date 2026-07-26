@@ -1,0 +1,65 @@
+{
+  "manifest_version": 3,
+  "name": "CDN Headers & Cookies",
+  "short_name": "CookHeaders",
+  "version": "0.0.0",
+  "description": "Inspect request headers, response headers, CDN debug headers and cookies for any request on the page.",
+
+  "icons": {
+    "16": "assets/icons/favicon-16.png",
+    "32": "assets/icons/favicon-32.png",
+    "48": "assets/icons/favicon-48.png",
+    "128": "assets/icons/favicon-128.png"
+  },
+
+  "permissions": [
+    "cookies",
+    "storage",
+    "tabs",
+    "webRequest",
+    "declarativeNetRequestWithHostAccess"
+  ],
+
+  "host_permissions": ["http://*/*", "https://*/*"],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  },
+
+  "__firefox__browser_specific_settings": {
+    "gecko": {
+      "id": "cdn-headers-and-cookies@thinhhv.com",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": {
+        "required": ["none"],
+        "optional": []
+      }
+    }
+  },
+
+  "__chrome__minimum_chrome_version": "116",
+
+  "action": {
+    "default_popup": "Popup/popup.html",
+    "default_icon": {
+      "16": "assets/icons/favicon-16.png",
+      "32": "assets/icons/favicon-32.png",
+      "48": "assets/icons/favicon-48.png",
+      "128": "assets/icons/favicon-128.png"
+    },
+    "default_title": "CDN Headers & Cookies"
+  },
+
+  "__chrome__options_page": "Options/options.html",
+  "options_ui": {
+    "page": "Options/options.html",
+    "open_in_tab": true
+  },
+
+  "background": {
+    "__chrome__service_worker": "assets/js/background.bundle.js",
+    "__chrome__type": "module",
+    "__firefox__scripts": ["assets/js/background.bundle.js"],
+    "__firefox__type": "module"
+  }
+}

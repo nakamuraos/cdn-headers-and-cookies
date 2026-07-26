@@ -194,7 +194,8 @@ body {
   width: var(--skin-width);
   max-width: 800px;
   margin: 0;
-  overflow: hidden;
+  /* Scroll rather than clip if the browser gives the popup less room. */
+  overflow: auto;
 }
 
 :focus-visible {

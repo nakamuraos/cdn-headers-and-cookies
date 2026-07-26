@@ -1,13 +1,14 @@
 type Size = 'md' | 'sm';
 
+/* Knob travel is track width less the knob and its 2px inset either side. */
 const track: Record<Size, string> = {
-  md: 'h-[26px] w-[44px]',
-  sm: 'h-[20px] w-[34px]',
+  md: 'h-[20px] w-[36px]',
+  sm: 'h-[16px] w-[28px]',
 };
 
 const knob: Record<Size, string> = {
-  md: 'size-[22px] peer-checked:translate-x-[18px]',
-  sm: 'size-[16px] peer-checked:translate-x-[14px]',
+  md: 'size-[16px] peer-checked:translate-x-[16px]',
+  sm: 'size-[12px] peer-checked:translate-x-[12px]',
 };
 
 /**

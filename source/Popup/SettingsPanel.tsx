@@ -59,12 +59,12 @@ export function SettingsPanel({
           <Switch id="inject-classic" checked={injectEnabled} onChange={onToggleInject} />
         </div>
 
-        <p className="skin-sm m-0 max-w-[64ch] text-[10px] text-ink-dim">
+        <p className="skin-sm m-0 text-ink-dim">
           Note: Enabling the above checkbox means, the following {preset.label} header
           names will be appended to the Pragma header value and it will be appended to the
           next request.
         </p>
-        <p className="skin-sm m-0 max-w-[64ch] break-words text-[10px] text-ink-dim">
+        <p className="skin-sm m-0 break-words text-ink-dim">
           {preset.inject.map((h) => h.value).join(' ')}
         </p>
 
@@ -130,7 +130,7 @@ export function SettingsPanel({
         onChange={(skin) => onChange({skin})}
       />
 
-      <p className="skin-sm m-0 max-w-[64ch] text-ink-dim">
+      <p className="skin-sm m-0 text-ink-dim">
         Injected request headers are added by this extension and marked in the request
         headers table.
       </p>

@@ -17,6 +17,7 @@ function request(id: string, overrides: Partial<CapturedRequest> = {}): Captured
     method: 'GET',
     type: 'main_frame',
     timeStamp: 0,
+    hops: [],
     requestHeaders: [],
     responseHeaders: [],
     completed: false,

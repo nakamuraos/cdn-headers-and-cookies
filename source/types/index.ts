@@ -26,6 +26,18 @@ export interface CustomHeader {
   enabled: boolean;
 }
 
+/** One round trip. A redirect chain is several of these under one request id. */
+export interface RequestHop {
+  url: string;
+  method: string;
+  requestHeaders: HeaderEntry[];
+  responseHeaders: HeaderEntry[];
+  statusCode?: number;
+  statusLine?: string;
+  /** Set on every hop but the last, naming where the response sent us. */
+  redirectUrl?: string;
+}
+
 export interface CapturedRequest {
   id: string;
   tabId: number;
@@ -34,6 +46,8 @@ export interface CapturedRequest {
   method: string;
   type: string;
   timeStamp: number;
+  /** The chain in order. The fields below mirror its final hop. */
+  hops: RequestHop[];
   requestHeaders: HeaderEntry[];
   responseHeaders: HeaderEntry[];
   statusCode?: number;

@@ -3,6 +3,7 @@ import {useMemo, useState} from 'react';
 import {Button} from '@/components/Button';
 import {TextInput} from '@/components/Field';
 import {HeaderTable} from '@/components/HeaderTable';
+import {RedirectChain} from '@/components/RedirectChain';
 import {filterHeaders, groupResponseHeaders} from '@/lib/headers';
 import {detectPreset, type CdnPreset} from '@/lib/presets';
 import type {CapturedRequest, CdnPresetId, Skin} from '@/types';
@@ -69,18 +70,24 @@ export function ResponsePanel({
   onUsePreset?: (id: CdnPresetId) => void;
 }): React.JSX.Element {
   const [query, setQuery] = useState('');
+  const [hop, setHop] = useState<number | null>(null);
+
+  // The last hop is what the page ended up with, so it is the default view.
+  const hops = request.hops;
+  const selected = hop === null ? Math.max(hops.length - 1, 0) : hop;
+  const headers = hops[selected]?.responseHeaders ?? request.responseHeaders;
 
   // Grouping follows whichever CDN actually answered, so the headers worth
   // reading stay at the top even when the preset says otherwise.
   const detected = useMemo(
-    () => detectPreset(request.responseHeaders.map((h) => h.name)),
-    [request.responseHeaders]
+    () => detectPreset(headers.map((h) => h.name)),
+    [headers]
   );
   const grouping = detected ?? preset;
 
   const {cdn, other} = useMemo(
-    () => groupResponseHeaders(filterHeaders(request.responseHeaders, query), grouping),
-    [request.responseHeaders, query, grouping]
+    () => groupResponseHeaders(filterHeaders(headers, query), grouping),
+    [headers, query, grouping]
   );
 
   return (
@@ -96,6 +103,10 @@ export function ResponsePanel({
         />
         <Button onClick={onExport}>Export</Button>
       </div>
+
+      {hops.length > 1 ? (
+        <RedirectChain hops={hops} selected={selected} onSelect={setHop} />
+      ) : null}
 
       {detected ? (
         <DetectedBanner detected={detected} selected={preset} onUsePreset={onUsePreset} />

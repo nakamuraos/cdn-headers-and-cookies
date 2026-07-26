@@ -25,6 +25,7 @@ const request: CapturedRequest = {
   method: 'GET',
   type: 'main_frame',
   timeStamp: 0,
+  hops: [],
   requestHeaders: [
     {name: 'pragma', value: 'akamai-x-cache-on', injected: true},
     {name: 'accept', value: 'text/html'},

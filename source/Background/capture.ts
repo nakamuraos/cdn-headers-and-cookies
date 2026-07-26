@@ -4,7 +4,8 @@ import {hostFromUrl, isCapturableUrl} from '@/lib/hosts';
 import {pushRequest, truncateHeaders} from '@/lib/ringBuffer';
 import {injectedHeaders} from './rules';
 import {readCapture, readSettings, writeCapture} from './store';
-import type {CapturedRequest, HeaderEntry} from '@/types';
+import {updateBadge} from './badge';
+import type {CapturedRequest, HeaderEntry, RequestHop} from '@/types';
 
 const URL_FILTER = {urls: ['http://*/*', 'https://*/*']};
 
@@ -49,6 +50,42 @@ async function commit(tabId: number, request: CapturedRequest): Promise<void> {
 
   memory.set(tabId, next);
   await writeCapture(tabId, next);
+
+  if (request.type === 'main_frame') {
+    await updateBadge(tabId, request);
+  }
+}
+
+/** Mirrors the final hop onto the request, which is what the tables read. */
+function withHops(request: CapturedRequest, hops: RequestHop[]): CapturedRequest {
+  const last = hops[hops.length - 1];
+
+  return {
+    ...request,
+    hops,
+    url: last?.url ?? request.url,
+    method: last?.method ?? request.method,
+    requestHeaders: last?.requestHeaders ?? [],
+    responseHeaders: last?.responseHeaders ?? [],
+    statusCode: last?.statusCode,
+    statusLine: last?.statusLine,
+  };
+}
+
+/** Applies a patch to the hop currently in flight, the last one recorded. */
+async function patchLastHop(
+  tabId: number,
+  requestId: string,
+  patch: Partial<RequestHop>
+): Promise<void> {
+  const log = await logFor(tabId);
+  const existing = log.find((r) => r.id === requestId);
+  if (!existing || existing.hops.length === 0) return;
+
+  const hops = existing.hops.slice();
+  hops[hops.length - 1] = {...hops[hops.length - 1]!, ...patch};
+
+  await commit(tabId, withHops(existing, hops));
 }
 
 async function update(
@@ -96,20 +133,9 @@ export function registerCapture(): void {
 
         if (!settings.captureSubresources && details.type !== 'main_frame') return;
 
-        // A top-level navigation starts a fresh log, so the popup only ever
-        // shows requests belonging to the page currently on screen.
-        if (details.type === 'main_frame') {
-          memory.set(details.tabId, []);
-        }
-
-        await commit(details.tabId, {
-          id: details.requestId,
-          tabId: details.tabId,
+        const hop: RequestHop = {
           url: details.url,
-          host,
           method: details.method,
-          type: details.type,
-          timeStamp: details.timeStamp,
           requestHeaders: truncateHeaders(
             withInjected(
               toEntries(details.requestHeaders),
@@ -117,8 +143,44 @@ export function registerCapture(): void {
             )
           ),
           responseHeaders: [],
-          completed: false,
-        });
+        };
+
+        // A redirect reuses the request id, so an id already on file means this
+        // is the next hop of a chain rather than a new request.
+        const existing = (await logFor(details.tabId)).find(
+          (r) => r.id === details.requestId
+        );
+
+        if (existing) {
+          await commit(details.tabId, withHops(existing, [...existing.hops, hop]));
+          return;
+        }
+
+        // A top-level navigation starts a fresh log, so the popup only ever
+        // shows requests belonging to the page currently on screen.
+        if (details.type === 'main_frame') {
+          memory.set(details.tabId, []);
+        }
+
+        await commit(
+          details.tabId,
+          withHops(
+            {
+              id: details.requestId,
+              tabId: details.tabId,
+              url: details.url,
+              host,
+              method: details.method,
+              type: details.type,
+              timeStamp: details.timeStamp,
+              hops: [],
+              requestHeaders: [],
+              responseHeaders: [],
+              completed: false,
+            },
+            [hop]
+          )
+        );
       });
     },
     URL_FILTER,
@@ -130,7 +192,7 @@ export function registerCapture(): void {
       if (details.tabId < 0) return;
 
       enqueue(details.tabId, () =>
-        update(details.tabId, details.requestId, {
+        patchLastHop(details.tabId, details.requestId, {
           // The status line is surfaced as a pseudo-header, as it always has been.
           responseHeaders: truncateHeaders([
             {name: 'Status', value: details.statusLine},
@@ -138,6 +200,26 @@ export function registerCapture(): void {
           ]),
           statusCode: details.statusCode,
           statusLine: details.statusLine,
+        })
+      );
+    },
+    URL_FILTER,
+    ['responseHeaders', 'extraHeaders']
+  );
+
+  browser.webRequest.onBeforeRedirect.addListener(
+    (details) => {
+      if (details.tabId < 0) return;
+
+      enqueue(details.tabId, () =>
+        patchLastHop(details.tabId, details.requestId, {
+          responseHeaders: truncateHeaders([
+            {name: 'Status', value: details.statusLine},
+            ...toEntries(details.responseHeaders),
+          ]),
+          statusCode: details.statusCode,
+          statusLine: details.statusLine,
+          redirectUrl: details.redirectUrl,
         })
       );
     },

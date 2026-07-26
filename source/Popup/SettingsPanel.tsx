@@ -15,7 +15,7 @@ function SkinField({
   id: string;
 }): React.JSX.Element {
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex flex-wrap items-center gap-2.5">
       <label htmlFor={id} className="min-w-33 font-semibold">
         Appearance
       </label>
@@ -52,7 +52,7 @@ export function SettingsPanel({
   if (classic) {
     return (
       <div className="flex shrink-0 flex-col gap-2.5 border-b border-line bg-surface-2 p-3">
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <label htmlFor="inject-classic" className="skin-display min-w-33 text-[12px] font-semibold">
             Load {preset.label} Headers
           </label>
@@ -68,7 +68,7 @@ export function SettingsPanel({
           {preset.inject.map((h) => h.value).join(' ')}
         </p>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <label htmlFor="subres-classic" className="skin-display min-w-33 text-[12px] font-semibold">
             Watch Subresources
           </label>
@@ -115,7 +115,7 @@ export function SettingsPanel({
         />
       </div>
 
-      <div className="flex items-center gap-2.5">
+      <div className="flex flex-wrap items-center gap-2.5">
         <span className="min-w-33 font-semibold">Capture</span>
         <Switch
           label="Watch subresources"

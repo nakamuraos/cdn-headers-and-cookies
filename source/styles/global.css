@@ -63,7 +63,7 @@
   --skin-text-sm: 11px;
   --skin-row-y: 7px;
   --skin-row-x: 10px;
-  --skin-width: 560px;
+  --skin-width: 780px;
   --skin-height: 600px;
   /* The classic header bar is a solid band; the modern one is a quiet surface. */
   --skin-bar: var(--surface-2);
@@ -128,7 +128,7 @@
   --skin-text-sm: 10px;
   --skin-row-y: 7px;
   --skin-row-x: 7px;
-  --skin-width: 750px;
+  --skin-width: 760px;
   --skin-height: 600px;
   --skin-bar: #337ab7;
   --skin-bar-ink: #ffffff;
@@ -177,9 +177,15 @@ body {
   border-right: 1px solid var(--skin-cell-border);
 }
 
+/*
+  Browsers cap extension popups at 800x600 and refuse to scroll the window
+  itself, so the frame is clamped to the viewport and scrolls internally.
+*/
 @utility skin-popup {
   width: var(--skin-width);
   height: var(--skin-height);
+  max-width: 100vw;
+  max-height: 100vh;
 }
 
 :focus-visible {

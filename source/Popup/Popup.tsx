@@ -170,7 +170,7 @@ export function Popup(): React.JSX.Element {
 
   if (status !== 'ok' || !request) {
     return (
-      <main className="skin-popup flex flex-col bg-surface text-ink">
+      <main className="skin-popup flex flex-col overflow-hidden bg-surface text-ink">
         <Toolbar
           url={tabUrl || 'No page'}
           settingsOpen={settingsOpen}

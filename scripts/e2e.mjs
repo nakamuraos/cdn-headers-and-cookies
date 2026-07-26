@@ -5,15 +5,101 @@
  * page, and asserts on what the service worker actually recorded. Run it after
  * `npm run build:chrome`; it needs network access.
  *
+ * The browser binary is auto-detected per platform (macOS, Linux, Windows);
+ * set CHROME_PATH to point at a specific Chromium-based executable instead.
+ *
  * Chrome 137 removed the --load-extension flag, so the extension is installed
  * with Extensions.loadUnpacked, which requires --enable-unsafe-extension-debugging.
  */
 import {spawn} from 'node:child_process';
-import {mkdtempSync, rmSync} from 'node:fs';
-import {tmpdir} from 'node:os';
+import {accessSync, constants, mkdtempSync, rmSync} from 'node:fs';
+import {homedir, platform, tmpdir} from 'node:os';
 import path from 'node:path';
 
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+/**
+ * Chromium-family browsers the run can use, in preference order per platform.
+ * Absolute entries are probed directly; bare names are looked up on PATH.
+ */
+const BROWSERS = {
+  darwin: [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '~/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
+  ],
+  linux: [
+    'google-chrome',
+    'google-chrome-stable',
+    'google-chrome-beta',
+    'chromium',
+    'chromium-browser',
+    'microsoft-edge',
+    'brave-browser',
+    '/opt/google/chrome/chrome',
+    '/snap/bin/chromium',
+  ],
+  win32: [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    '~\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe',
+    '~\\AppData\\Local\\Google\\Chrome SxS\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe',
+    'chrome.exe',
+  ],
+};
+
+function isExecutable(candidate) {
+  try {
+    accessSync(candidate, constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Resolves a bare executable name against PATH, honouring PATHEXT on Windows. */
+function resolveOnPath(name) {
+  const dirs = (process.env.PATH ?? '').split(path.delimiter).filter(Boolean);
+  const exts =
+    platform() === 'win32' ? (process.env.PATHEXT ?? '.EXE').split(';') : [''];
+  for (const dir of dirs) {
+    for (const ext of exts) {
+      const candidate = path.join(dir, name + (name.endsWith(ext) ? '' : ext));
+      if (isExecutable(candidate)) return candidate;
+    }
+  }
+  return null;
+}
+
+function findBrowser() {
+  const override = process.env.CHROME_PATH ?? process.env.E2E_BROWSER;
+  if (override) {
+    if (!isExecutable(override)) {
+      throw new Error(`CHROME_PATH is not an executable: ${override}`);
+    }
+    return override;
+  }
+  for (const entry of BROWSERS[platform()] ?? []) {
+    const candidate = entry.startsWith('~')
+      ? path.join(homedir(), entry.slice(2))
+      : entry;
+    if (path.isAbsolute(candidate)) {
+      if (isExecutable(candidate)) return candidate;
+      continue;
+    }
+    const resolved = resolveOnPath(candidate);
+    if (resolved) return resolved;
+  }
+  throw new Error(
+    `No Chromium-based browser found for platform ${platform()}. ` +
+      'Set CHROME_PATH to the browser executable.'
+  );
+}
+
+const CHROME = findBrowser();
 const PORT = 9333;
 const EXT = process.argv[2] ?? path.resolve(import.meta.dirname, '..', 'extension', 'chrome');
 const TARGET_URL = 'https://www.mit.edu/';
@@ -83,6 +169,8 @@ class CDP {
   }
 }
 
+console.log(`[e2e] browser: ${CHROME}`);
+
 const chrome = spawn(CHROME, [
   `--user-data-dir=${profile}`,
   `--remote-debugging-port=${PORT}`,
@@ -91,8 +179,14 @@ const chrome = spawn(CHROME, [
   '--no-first-run',
   '--no-default-browser-check',
   '--disable-background-timer-throttling',
+  // Chrome's sandbox cannot start as root, which is the norm in CI containers.
+  ...(platform() === 'linux' && process.getuid?.() === 0 ? ['--no-sandbox'] : []),
   'about:blank',
 ]);
+
+chrome.on('error', (error) => {
+  process.stderr.write(`[chrome] failed to launch: ${error.message}\n`);
+});
 
 chrome.stderr.on('data', (d) => {
   const line = String(d);

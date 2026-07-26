@@ -143,7 +143,7 @@ export function CookiePanel({
                 key={label || 'actions'}
                 scope="col"
                 style={{width: [ '28%', 'auto', '30%', '56px' ][i]}}
-                className="skin-cell skin-sm sticky top-0 z-1 border-b border-line bg-surface text-left font-semibold tracking-wider text-ink-dim uppercase classic:bg-surface-2 classic:tracking-normal classic:text-ink classic:normal-case"
+                className="skin-cell skin-sm sticky top-0 z-1 border-b border-line bg-surface text-left font-semibold tracking-wider text-ink uppercase classic:bg-surface-2 classic:tracking-normal classic:normal-case"
               >
                 {label}
               </th>
@@ -186,7 +186,7 @@ export function CookiePanel({
                   <td className="skin-cell skin-mono border-b border-line align-top break-words">
                     {cookie.name}
                   </td>
-                  <td className="skin-cell skin-mono border-b border-line align-top break-words text-ink-dim classic:text-ink">
+                  <td className="skin-cell skin-mono border-b border-line align-top break-words">
                     {cookie.value}
                   </td>
                   <td className="skin-cell border-b border-line align-top">

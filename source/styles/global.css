@@ -9,9 +9,10 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 @theme {
-  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
-  /* The 2.0.6 interface set these two faces explicitly. */
+  /*
+    The 2.0.6 interface named these two faces, and both skins now use them, so
+    switching skin changes colour and layout without reflowing the text.
+  */
   --font-classic: 'Segoe UI', Tahoma, sans-serif;
   --font-classic-display: Corbel, 'Segoe UI', Tahoma, sans-serif;
 
@@ -54,9 +55,9 @@
   --crit: #cd3131;
   --crit-soft: #fbe4e4;
 
-  --skin-font: var(--font-ui);
-  --skin-display: var(--font-ui);
-  --skin-mono: var(--font-mono);
+  --skin-font: var(--font-classic);
+  --skin-display: var(--font-classic-display);
+  --skin-mono: var(--font-classic);
   --skin-radius: 6px;
   --skin-radius-sm: 4px;
   --skin-text: 12.5px;

@@ -72,7 +72,7 @@ export function HeaderTable({
               sortKey="name"
               sort={sort}
               onSort={onSort}
-              width="26%"
+              width="25%"
             />
             <SortableHeading label="Value" sortKey="value" sort={sort} onSort={onSort} />
           </tr>
@@ -95,7 +95,7 @@ export function HeaderTable({
                 key={`${header.name}-${index}`}
                 className="classic:odd:bg-surface-2"
               >
-                <td className="skin-cell skin-mono skin-cell-rule w-[26%] border-b border-line bg-surface-2 align-top break-words classic:break-all">
+                <td className="skin-cell skin-mono skin-cell-rule w-[25%] border-b border-line bg-surface-2 align-top break-words classic:break-all">
                   {header.name}
                   {header.injected ? <InjectedTag /> : null}
                 </td>

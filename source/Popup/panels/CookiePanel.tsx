@@ -166,7 +166,9 @@ export function CookiePanel({
           {rows.length === 0 && editing !== 'new' ? (
             <tr>
               <td colSpan={4} className="skin-cell text-ink-dim">
-                No cookies match that filter.
+                {query.trim()
+                  ? 'No cookies match that filter.'
+                  : `No cookies set for ${domain}.`}
               </td>
             </tr>
           ) : (
@@ -186,7 +188,7 @@ export function CookiePanel({
                   <td className="skin-cell skin-mono skin-cell-rule border-b border-line bg-surface-2 align-top break-words">
                     {cookie.name}
                   </td>
-                  <td className="skin-cell skin-mono border-b border-line align-top break-words">
+                  <td className="skin-cell skin-mono skin-cell-rule border-b border-line align-top break-words">
                     {cookie.value}
                   </td>
                   <td className="skin-cell skin-cell-rule border-b border-line align-top">
@@ -196,7 +198,7 @@ export function CookiePanel({
                       ))}
                     </span>
                   </td>
-                  <td className="skin-cell border-b border-line align-top">
+                  <td className="skin-cell skin-cell-rule border-b border-line align-top">
                     <span className="flex gap-0.5">
                       <Button
                         variant="icon"

@@ -48,10 +48,23 @@ export function cacheState(name: string, value: string, preset: CdnPreset): Cach
 
   const v = value.toLowerCase();
 
-  if (v.includes('refresh') || v.includes('revalidated') || v.includes('stale')) {
+  if (
+    v.includes('refresh') ||
+    v.includes('revalidated') ||
+    v.includes('stale') ||
+    v.includes('expired') ||
+    v.includes('updating')
+  ) {
     return 'warn';
   }
-  if (v.includes('miss') || v === 'no' || v.includes('bypass') || v.includes('dynamic')) {
+  if (
+    v.includes('miss') ||
+    v === 'no' ||
+    v.includes('bypass') ||
+    v.includes('dynamic') ||
+    v.includes('error') ||
+    v.includes('uncacheable')
+  ) {
     return 'crit';
   }
   if (v.includes('hit') || v === 'yes') return 'ok';

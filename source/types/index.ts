@@ -2,7 +2,16 @@ export type Skin = 'modern' | 'classic';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
-export type CdnPresetId = 'akamai' | 'cloudflare' | 'fastly' | 'none';
+export type CdnPresetId =
+  | 'akamai'
+  | 'cloudflare'
+  | 'fastly'
+  | 'cloudfront'
+  | 'azure'
+  | 'google'
+  | 'bunny'
+  | 'varnish'
+  | 'none';
 
 export interface HeaderEntry {
   name: string;

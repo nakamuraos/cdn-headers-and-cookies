@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 
 import {cacheState, groupResponseHeaders, sortHeaders, statusSeverity} from '@/lib/headers';
-import {presets} from '@/lib/presets';
+import {detectPreset, getPreset, presetList, presets} from '@/lib/presets';
 import {hostFromUrl, isCapturableUrl} from '@/lib/hosts';
 import {MAX_HEADER_VALUE, pushRequest, truncateValue} from '@/lib/ringBuffer';
 import {headersToCsv, requestToCurl, toCsv} from '@/lib/format';
@@ -240,5 +240,58 @@ describe('withInjected', () => {
     const observed = [{name: 'accept', value: 'text/html'}];
 
     expect(withInjected(observed, [])).toEqual(observed);
+  });
+});
+
+describe('cdn presets', () => {
+  it('gives every preset a distinct id and a label', () => {
+    const ids = presetList.map((p) => p.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(presetList.every((p) => p.label.length > 0)).toBe(true);
+  });
+
+  it('lists its cache-state headers among its response headers', () => {
+    for (const preset of presetList) {
+      for (const name of preset.cacheStateHeaders) {
+        expect(preset.responseHeaders).toContain(name);
+      }
+    }
+  });
+
+  it('keeps every header name lower-cased so matching is case insensitive', () => {
+    for (const preset of presetList) {
+      for (const name of [...preset.responseHeaders, ...preset.fingerprint]) {
+        expect(name).toBe(name.toLowerCase());
+      }
+    }
+  });
+
+  it('falls back to Akamai for an unknown id', () => {
+    expect(getPreset('nope' as never).id).toBe('akamai');
+  });
+});
+
+describe('detectPreset', () => {
+  it('names the CDN from its identifying headers', () => {
+    expect(detectPreset(['X-Amz-Cf-Id', 'via'])?.id).toBe('cloudfront');
+    expect(detectPreset(['CF-Ray'])?.id).toBe('cloudflare');
+    expect(detectPreset(['x-varnish', 'age'])?.id).toBe('varnish');
+    expect(detectPreset(['akamai-grn'])?.id).toBe('akamai');
+  });
+
+  it('returns nothing when no CDN is identifiable', () => {
+    expect(detectPreset(['content-type', 'date'])).toBeNull();
+  });
+});
+
+describe('cache state across presets', () => {
+  it('reads each preset own vocabulary', () => {
+    expect(cacheState('cf-cache-status', 'EXPIRED', presets.cloudflare)).toBe('warn');
+    expect(cacheState('x-cache', 'Hit from cloudfront', presets.cloudfront)).toBe('ok');
+    expect(cacheState('x-cache', 'Miss from cloudfront', presets.cloudfront)).toBe('crit');
+    expect(cacheState('x-cache', 'RefreshHit from cloudfront', presets.cloudfront)).toBe('warn');
+    expect(cacheState('cdn-cache', 'BYPASS', presets.bunny)).toBe('crit');
+    expect(cacheState('x-goog-cache-status', 'hit', presets.google)).toBe('ok');
   });
 });

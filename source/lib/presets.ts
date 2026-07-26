@@ -9,6 +9,8 @@ export interface CdnPreset {
   responseHeaders: string[];
   /** Headers whose values carry cache state, used for the at-a-glance colouring. */
   cacheStateHeaders: string[];
+  /** Response headers whose presence identifies this CDN, lower-cased. */
+  fingerprint: string[];
 }
 
 const AKAMAI_PRAGMA = [
@@ -33,16 +35,23 @@ export const presets: Record<CdnPresetId, CdnPreset> = {
     inject: [{name: 'Pragma', value: AKAMAI_PRAGMA}],
     responseHeaders: [
       'x-cache',
-      'x-cache-key',
       'x-cache-remote',
       'x-check-cacheable',
+      'x-cache-key',
       'x-true-cache-key',
+      'x-cache-key-extended-internal-use-only',
       'x-serial',
       'x-akamai-request-id',
       'akamai-request-bc',
       'akamai-grn',
+      'akamai-cache-status',
+      'x-akamai-ssl-client-sid',
+      'x-akamai-staging',
+      'x-akamai-transformed',
+      'age',
     ],
     cacheStateHeaders: ['x-cache', 'x-cache-remote', 'x-check-cacheable'],
+    fingerprint: ['x-akamai-request-id', 'akamai-request-bc', 'akamai-grn'],
   },
 
   cloudflare: {
@@ -55,9 +64,13 @@ export const presets: Record<CdnPresetId, CdnPreset> = {
       'cf-apo-via',
       'cf-edge-cache',
       'cf-polished',
+      'cf-bgj',
+      'cf-connecting-ip',
+      'cdn-loop',
       'age',
     ],
     cacheStateHeaders: ['cf-cache-status'],
+    fingerprint: ['cf-ray', 'cf-cache-status'],
   },
 
   fastly: {
@@ -65,16 +78,106 @@ export const presets: Record<CdnPresetId, CdnPreset> = {
     label: 'Fastly',
     inject: [{name: 'Fastly-Debug', value: '1'}],
     responseHeaders: [
-      'x-served-by',
       'x-cache',
       'x-cache-hits',
+      'x-served-by',
       'x-timer',
       'fastly-debug-digest',
       'fastly-debug-path',
       'fastly-debug-ttl',
+      'fastly-debug-state',
+      'surrogate-key',
+      'surrogate-control',
       'age',
     ],
     cacheStateHeaders: ['x-cache'],
+    fingerprint: ['x-served-by', 'x-timer', 'fastly-debug-digest'],
+  },
+
+  cloudfront: {
+    id: 'cloudfront',
+    label: 'CloudFront',
+    inject: [],
+    responseHeaders: [
+      'x-cache',
+      'x-amz-cf-pop',
+      'x-amz-cf-id',
+      'x-amz-server-side-encryption',
+      'x-amz-request-id',
+      'via',
+      'age',
+    ],
+    cacheStateHeaders: ['x-cache'],
+    fingerprint: ['x-amz-cf-id', 'x-amz-cf-pop'],
+  },
+
+  azure: {
+    id: 'azure',
+    label: 'Azure Front Door',
+    inject: [],
+    responseHeaders: [
+      'x-cache',
+      'x-azure-ref',
+      'x-azure-ref-originshield',
+      'x-fd-int-roxy-purgeid',
+      'x-ms-request-id',
+      'x-ec-custom-error',
+      'age',
+    ],
+    cacheStateHeaders: ['x-cache'],
+    fingerprint: ['x-azure-ref', 'x-fd-int-roxy-purgeid'],
+  },
+
+  google: {
+    id: 'google',
+    label: 'Google Cloud CDN',
+    inject: [],
+    responseHeaders: [
+      'x-goog-cache-status',
+      'x-goog-generation',
+      'x-goog-metageneration',
+      'x-goog-stored-content-encoding',
+      'x-guploader-uploadid',
+      'via',
+      'age',
+    ],
+    cacheStateHeaders: ['x-goog-cache-status'],
+    fingerprint: ['x-goog-cache-status', 'x-guploader-uploadid'],
+  },
+
+  bunny: {
+    id: 'bunny',
+    label: 'BunnyCDN',
+    inject: [],
+    responseHeaders: [
+      'cdn-cache',
+      'cdn-cachedat',
+      'cdn-status',
+      'cdn-edgestorageid',
+      'cdn-pullzone',
+      'cdn-requestid',
+      'cdn-requestcountrycode',
+      'cdn-proxyver',
+      'age',
+    ],
+    cacheStateHeaders: ['cdn-cache'],
+    fingerprint: ['cdn-pullzone', 'cdn-edgestorageid'],
+  },
+
+  varnish: {
+    id: 'varnish',
+    label: 'Varnish',
+    inject: [],
+    responseHeaders: [
+      'x-cache',
+      'x-cache-hits',
+      'x-varnish',
+      'x-varnish-cache',
+      'via',
+      'age',
+    ],
+    cacheStateHeaders: ['x-cache', 'x-varnish-cache'],
+    fingerprint: ['x-varnish'],
   },
 
   none: {
@@ -83,6 +186,7 @@ export const presets: Record<CdnPresetId, CdnPreset> = {
     inject: [],
     responseHeaders: [],
     cacheStateHeaders: [],
+    fingerprint: [],
   },
 };
 
@@ -90,9 +194,29 @@ export const presetList = [
   presets.akamai,
   presets.cloudflare,
   presets.fastly,
+  presets.cloudfront,
+  presets.azure,
+  presets.google,
+  presets.bunny,
+  presets.varnish,
   presets.none,
 ];
 
 export function getPreset(id: CdnPresetId): CdnPreset {
   return presets[id] ?? presets.akamai;
+}
+
+/**
+ * Names the CDN a response came from by its identifying headers, so the popup
+ * can say when the active preset does not match what actually served the page.
+ */
+export function detectPreset(headerNames: string[]): CdnPreset | null {
+  const present = new Set(headerNames.map((name) => name.toLowerCase()));
+
+  for (const preset of presetList) {
+    if (preset.id === 'none') continue;
+    if (preset.fingerprint.some((name) => present.has(name))) return preset;
+  }
+
+  return null;
 }

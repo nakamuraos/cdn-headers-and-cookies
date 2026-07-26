@@ -110,8 +110,54 @@ export function statusFromLine(value: string): number | undefined {
   return match ? Number(match[1]) : undefined;
 }
 
+/**
+ * HTTP/2 dropped the reason phrase, so a status line often carries only a code.
+ * These are the standard phrases, used when the line does not supply one.
+ */
+const REASONS: Record<number, string> = {
+  200: 'OK',
+  201: 'Created',
+  202: 'Accepted',
+  204: 'No Content',
+  206: 'Partial Content',
+  301: 'Moved Permanently',
+  302: 'Found',
+  303: 'See Other',
+  304: 'Not Modified',
+  307: 'Temporary Redirect',
+  308: 'Permanent Redirect',
+  400: 'Bad Request',
+  401: 'Unauthorized',
+  403: 'Forbidden',
+  404: 'Not Found',
+  405: 'Method Not Allowed',
+  406: 'Not Acceptable',
+  408: 'Request Timeout',
+  409: 'Conflict',
+  410: 'Gone',
+  412: 'Precondition Failed',
+  413: 'Payload Too Large',
+  415: 'Unsupported Media Type',
+  418: "I'm a Teapot",
+  421: 'Misdirected Request',
+  422: 'Unprocessable Content',
+  425: 'Too Early',
+  429: 'Too Many Requests',
+  451: 'Unavailable For Legal Reasons',
+  500: 'Internal Server Error',
+  501: 'Not Implemented',
+  502: 'Bad Gateway',
+  503: 'Service Unavailable',
+  504: 'Gateway Timeout',
+  505: 'HTTP Version Not Supported',
+  511: 'Network Authentication Required',
+};
+
 export function reasonFromLine(value: string): string {
   const match = /\b[1-5]\d{2}\b\s+(.+)$/.exec(value.trim());
+  if (match?.[1]) return match[1].trim();
 
-  return match?.[1]?.trim() ?? '';
+  const status = statusFromLine(value);
+
+  return status === undefined ? '' : (REASONS[status] ?? '');
 }

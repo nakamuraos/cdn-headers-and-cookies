@@ -390,8 +390,19 @@ describe('reasonFromLine', () => {
     expect(reasonFromLine('HTTP/1.1 301 Moved Permanently')).toBe('Moved Permanently');
   });
 
-  it('returns nothing when the line carries no phrase', () => {
-    expect(reasonFromLine('HTTP/2 200')).toBe('');
+  it('supplies the standard phrase when the line omits it', () => {
+    // HTTP/2 carries no reason phrase, so the code has to speak for itself.
+    expect(reasonFromLine('HTTP/1.1 200')).toBe('OK');
+    expect(reasonFromLine('HTTP/2 404')).toBe('Not Found');
+    expect(reasonFromLine('HTTP/2 304')).toBe('Not Modified');
+    expect(reasonFromLine('HTTP/2 503')).toBe('Service Unavailable');
+  });
+
+  it('prefers the phrase the server sent over the standard one', () => {
+    expect(reasonFromLine('HTTP/1.1 404 Nope')).toBe('Nope');
+  });
+
+  it('returns nothing when there is no status at all', () => {
     expect(reasonFromLine('HTTP/1.1')).toBe('');
     expect(reasonFromLine('')).toBe('');
   });

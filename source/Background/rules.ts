@@ -60,16 +60,6 @@ export function validateHeader(header: {name: string; value: string}): string | 
   return null;
 }
 
-/** Hashes a host to a stable id offset, so rule ids survive restarts without a counter. */
-function hostOffset(host: string): number {
-  let hash = 0;
-  for (let i = 0; i < host.length; i += 1) {
-    hash = (hash * 31 + host.charCodeAt(i)) % 1_000_000;
-  }
-
-  return hash;
-}
-
 function enabledHeaders(headers: CustomHeader[]): CustomHeader[] {
   return headers.filter((h) => h.enabled && validateHeader(h) === null);
 }
@@ -122,12 +112,18 @@ export function desiredRules(settings: Settings): HeaderRule[] {
     });
   }
 
+  // Ids are positional rather than hashed: the whole set is replaced on every
+  // reconcile, and hashing hosts into a fixed range collides.
+  let hostRuleId = HOST_RULE_BASE;
+
   for (const [host, headers] of Object.entries(settings.hostHeaders)) {
     const enabled = enabledHeaders(headers);
     if (enabled.length === 0) continue;
 
+    hostRuleId += 1;
+
     rules.push({
-      id: HOST_RULE_BASE + hostOffset(host),
+      id: hostRuleId,
       priority: 3,
       action: modifyAction(enabled),
       condition: {
@@ -204,7 +200,15 @@ export async function applyRules(settings: Settings): Promise<void> {
       ...new Set([...current.map((rule) => rule.id), ...desired.map((rule) => rule.id)]),
     ];
 
-    await dnr().updateDynamicRules({removeRuleIds, addRules: desired});
+    try {
+      await dnr().updateDynamicRules({removeRuleIds, addRules: desired});
+    } catch {
+      // A batch is rejected whole, which would leave injection silently off.
+      // Dropping every installed rule first gives the retry a clean store.
+      const stale = await dnr().getDynamicRules();
+      await dnr().updateDynamicRules({removeRuleIds: stale.map((rule) => rule.id)});
+      await dnr().updateDynamicRules({addRules: desired});
+    }
   };
 
   const next = pending.then(reconcile, reconcile);

@@ -17,7 +17,10 @@ async function syncRules(): Promise<void> {
   try {
     await applyRules(await readSettings());
   } catch (error) {
-    console.error('Failed to apply header rules', error);
+    // Reported as a warning rather than an error: the next sync retries, and a
+    // console error here surfaces on the browser's extensions page as a fault
+    // the user is expected to act on.
+    console.warn('Could not apply header rules, will retry on the next change', error);
   }
 }
 

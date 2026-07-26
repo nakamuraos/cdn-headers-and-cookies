@@ -140,22 +140,36 @@ export function desiredRules(settings: Settings): HeaderRule[] {
   return rules;
 }
 
-/** Every header this extension would inject for a host, for marking captured headers. */
-export function injectedHeaderNames(settings: Settings, host: string): Set<string> {
-  const names = new Set<string>();
+/**
+ * The headers the dynamic rules add for a host, in the order they are applied.
+ *
+ * Chrome runs webRequest observers before declarativeNetRequest rewrites the
+ * request, so injected headers are never visible to the capture listeners.
+ * The captured list is completed from this instead of by detection.
+ */
+export function injectedHeaders(
+  settings: Settings,
+  host: string
+): {name: string; value: string}[] {
+  const headers: {name: string; value: string}[] = [];
   const preset = getPreset(settings.preset);
 
   if (settings.hostToggles[host] !== false) {
-    for (const h of preset.inject) names.add(h.name.toLowerCase());
+    headers.push(...preset.inject.map((h) => ({name: h.name, value: h.value})));
   }
   for (const h of enabledHeaders(settings.globalHeaders)) {
-    names.add(h.name.toLowerCase());
+    headers.push({name: h.name, value: h.value});
   }
   for (const h of enabledHeaders(settings.hostHeaders[host] ?? [])) {
-    names.add(h.name.toLowerCase());
+    headers.push({name: h.name, value: h.value});
   }
 
-  return names;
+  return headers;
+}
+
+/** Every header this extension would inject for a host, lower-cased. */
+export function injectedHeaderNames(settings: Settings, host: string): Set<string> {
+  return new Set(injectedHeaders(settings, host).map((h) => h.name.toLowerCase()));
 }
 
 interface DynamicRuleApi {

@@ -5,6 +5,7 @@ import {presets} from '@/lib/presets';
 import {hostFromUrl, isCapturableUrl} from '@/lib/hosts';
 import {MAX_HEADER_VALUE, pushRequest, truncateValue} from '@/lib/ringBuffer';
 import {headersToCsv, requestToCurl, toCsv} from '@/lib/format';
+import {withInjected} from '@/Background/capture';
 import type {CapturedRequest} from '@/types';
 
 function request(id: string, overrides: Partial<CapturedRequest> = {}): CapturedRequest {
@@ -208,5 +209,36 @@ describe('requestToCurl', () => {
     );
 
     expect(curl).toContain("'X-A: it'\\''s'");
+  });
+});
+
+describe('withInjected', () => {
+  it('appends injected headers and marks them', () => {
+    const merged = withInjected([{name: 'accept', value: 'text/html'}], [
+      {name: 'Pragma', value: 'akamai-x-cache-on'},
+    ]);
+
+    expect(merged).toHaveLength(2);
+    expect(merged[1]).toEqual({
+      name: 'Pragma',
+      value: 'akamai-x-cache-on',
+      injected: true,
+    });
+  });
+
+  it('replaces an observed header of the same name, case insensitively', () => {
+    const merged = withInjected([{name: 'pragma', value: 'no-cache'}], [
+      {name: 'Pragma', value: 'akamai-x-cache-on'},
+    ]);
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.value).toBe('akamai-x-cache-on');
+    expect(merged[0]?.injected).toBe(true);
+  });
+
+  it('leaves observed headers alone when nothing is injected', () => {
+    const observed = [{name: 'accept', value: 'text/html'}];
+
+    expect(withInjected(observed, [])).toEqual(observed);
   });
 });

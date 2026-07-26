@@ -15,6 +15,13 @@ export default [
   js.configs.recommended,
 
   {
+    files: ['scripts/**/*.mjs', '*.config.{ts,mjs}'],
+    languageOptions: {
+      globals: {...globals.node, ...globals.browser},
+    },
+  },
+
+  {
     files: ['**/*.{ts,tsx}'],
 
     languageOptions: {

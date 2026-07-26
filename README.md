@@ -39,6 +39,7 @@ npm run dev:firefox     # rebuild on change into extension/firefox
 
 npm run build           # production build for both browsers
 npm test                # unit and component tests
+npm run test:e2e        # drives a real Chrome against a live CDN (needs network)
 npm run lint
 ```
 

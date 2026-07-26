@@ -17,7 +17,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test:e2e": "node scripts/e2e.mjs"
   },
   "dependencies": {
     "react": "^19.2.3",

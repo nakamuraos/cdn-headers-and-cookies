@@ -27,10 +27,6 @@ this is a reimplementation rather than a fork.
 
 ## What it does
 
-<div align="center">
-  <img src="docs/screenshots/1-response-headers.png" alt="Response headers grouped by the CDN that served them" width="820">
-</div>
-
 - **Names the CDN that answered.** Akamai, Cloudflare, Fastly, CloudFront, Azure
   Front Door, Google Cloud CDN, BunnyCDN, Netlify and Varnish are recognised from
   their own headers, and their debug headers are grouped ahead of the rest. Cache
@@ -52,35 +48,38 @@ this is a reimplementation rather than a fork.
 - **Two skins:** a modern interface with light and dark modes, and a recreation
   of the original 2.0.6 interface.
 
-### Light and dark
-
-<div align="center">
-  <img src="docs/screenshots/4-light-and-dark.png" alt="The same view in dark and light mode, split along the diagonal" width="820">
-</div>
-
-### Request headers, with injected ones marked
-
-<div align="center">
-  <img src="docs/screenshots/2-request-headers.png" alt="Request headers, with the headers this extension injected marked" width="820">
-</div>
-
-### Cookies
-
-<div align="center">
-  <img src="docs/screenshots/3-cookies.png" alt="Cookie list with flags, editable in place" width="820">
-</div>
-
-### The 2.0.6 interface, rebuilt
-
-<div align="center">
-  <img src="docs/screenshots/5-classic-skin.png" alt="The classic skin, recreating the original interface" width="820">
-</div>
-
-### Settings
-
-<div align="center">
-  <img src="docs/screenshots/6-settings.png" alt="Settings page" width="820">
-</div>
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/1-response-headers.png" alt="Response headers grouped by the CDN that served them" width="100%">
+      <p align="center"><b>Response headers</b>, grouped by the CDN that served them</p>
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/2-request-headers.png" alt="Request headers, with the headers this extension injected marked" width="100%">
+      <p align="center"><b>Request headers</b>, with the injected ones marked</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/3-cookies.png" alt="Cookie list with flags, editable in place" width="100%">
+      <p align="center"><b>Cookies</b>, with the flags, editable in place</p>
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/4-light-and-dark.png" alt="The same view in dark and light mode, split along the diagonal" width="100%">
+      <p align="center"><b>Light and dark</b>, split along the diagonal</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/5-classic-skin.png" alt="The classic skin, recreating the original interface" width="100%">
+      <p align="center"><b>The 2.0.6 interface</b>, rebuilt</p>
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/6-settings.png" alt="Settings page" width="100%">
+      <p align="center"><b>Settings</b></p>
+    </td>
+  </tr>
+</table>
 
 ## Requirements
 

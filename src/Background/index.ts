@@ -5,9 +5,22 @@ import { applyRules } from "./rules"
 import { readSettings } from "./store"
 import { applySurface, registerSurface } from "./surface"
 
-registerCapture()
-registerMessaging()
-registerSurface()
+/**
+ * Registration is per feature and reported rather than propagated. These run at
+ * the top of the worker, where anything thrown takes down every registration
+ * after it and leaves an extension that loads but does nothing.
+ */
+function register(name: string, registration: () => void): void {
+  try {
+    registration()
+  } catch (error) {
+    console.error(`Could not register ${name}`, error)
+  }
+}
+
+register("capture", registerCapture)
+register("messaging", registerMessaging)
+register("the toolbar surface", registerSurface)
 
 /**
  * Dynamic rules and the toolbar icon's registration are browser state rather

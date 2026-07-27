@@ -1,6 +1,6 @@
 {
   "name": "cdn-headers-and-cookies",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Inspect request headers, response headers, CDN debug headers and cookies for any request on the page",
   "private": true,
   "license": "Apache-2.0",

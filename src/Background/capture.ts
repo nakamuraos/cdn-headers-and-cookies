@@ -10,6 +10,18 @@ import { patchSettings, readCapture, readSettings, writeCapture } from "./store"
 const URL_FILTER = { urls: ["http://*/*", "https://*/*"] }
 
 /**
+ * Chromium hides some headers from webRequest unless the listener opts into
+ * seeing them, at the cost of a slower path. Gecko shows them all and rejects
+ * the option as an unknown enumeration value, throwing out of `addListener`
+ * rather than ignoring it, so it is only ever passed where it is defined.
+ */
+export function extraHeadersFor(target: string): "extraHeaders"[] {
+  return target === "chrome" ? ["extraHeaders"] : []
+}
+
+const EXTRA_HEADERS = extraHeadersFor(__TARGET_BROWSER__)
+
+/**
  * Requests are held in memory for the life of the worker and mirrored to
  * session storage on every write, so a restart resumes from what was already
  * recorded rather than from nothing.
@@ -197,7 +209,7 @@ export function registerCapture(): void {
       })
     },
     URL_FILTER,
-    ["requestHeaders", "extraHeaders"],
+    ["requestHeaders", ...EXTRA_HEADERS],
   )
 
   browser.webRequest.onHeadersReceived.addListener(
@@ -219,7 +231,7 @@ export function registerCapture(): void {
       })
     },
     URL_FILTER,
-    ["responseHeaders", "extraHeaders"],
+    ["responseHeaders", ...EXTRA_HEADERS],
   )
 
   browser.webRequest.onBeforeRedirect.addListener(
@@ -239,7 +251,7 @@ export function registerCapture(): void {
       )
     },
     URL_FILTER,
-    ["responseHeaders", "extraHeaders"],
+    ["responseHeaders", ...EXTRA_HEADERS],
   )
 
   browser.webRequest.onCompleted.addListener((details) => {

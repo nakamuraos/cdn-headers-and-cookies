@@ -1,0 +1,73 @@
+name: Release
+
+# A tag cuts a release; a manual run builds the same artefacts without
+# publishing, so a build can be checked before the tag exists.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - run: yarn install --frozen-lockfile
+
+      - name: Read the version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >>"$GITHUB_OUTPUT"
+
+      # The manifest takes its version from package.json, so a tag that
+      # disagrees would publish an archive numbered differently from its
+      # release.
+      - name: Check the tag matches the manifest version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$tag" != "${{ steps.version.outputs.version }}" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json ${{ steps.version.outputs.version }}" >&2
+            exit 1
+          fi
+
+      - run: yarn format
+      - run: yarn lint
+      - run: yarn test
+      - run: yarn build
+
+      - name: Name the archives after the release
+        id: archives
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          mv extension/chrome.zip "extension/cdn-headers-and-cookies-$version-chrome.zip"
+          mv extension/firefox.xpi "extension/cdn-headers-and-cookies-$version-firefox.xpi"
+          echo "prefix=cdn-headers-and-cookies-$version" >>"$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.archives.outputs.prefix }}
+          path: |
+            extension/${{ steps.archives.outputs.prefix }}-chrome.zip
+            extension/${{ steps.archives.outputs.prefix }}-firefox.xpi
+          if-no-files-found: error
+
+      - name: Publish the release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            "extension/${{ steps.archives.outputs.prefix }}-chrome.zip" \
+            "extension/${{ steps.archives.outputs.prefix }}-firefox.xpi"

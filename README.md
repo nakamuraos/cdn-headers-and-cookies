@@ -102,6 +102,7 @@ yarn build           # production build for both browsers
 yarn test            # unit and component tests
 yarn test:e2e        # drives a real Chrome against a live CDN (needs network)
 yarn lint
+yarn format          # yarn format:fix to write
 
 yarn icons           # regenerate the extension icons from assets/logo.png
 yarn screenshots     # regenerate the store screenshots (needs network)
@@ -110,6 +111,14 @@ yarn screenshots     # regenerate the store screenshots (needs network)
 Load the result as an unpacked extension: `chrome://extensions` with developer
 mode on, or `about:debugging` in Firefox, pointing at `extension/chrome` or
 `extension/firefox`.
+
+## Releases
+
+Pushing a `v*` tag runs the checks, builds both browsers and publishes a GitHub
+release carrying `-chrome.zip` and `-firefox.xpi`. The tag has to match the
+version in `package.json`, which is where the manifests take theirs from. The
+same workflow runs from the Actions tab, building the archives as run artefacts
+without publishing anything.
 
 ## Layout
 

@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import browser from 'webextension-polyfill';
 
 import {Button} from '@/components/Button';
@@ -11,9 +11,10 @@ import {Toolbar, type ExportFormat} from './Toolbar';
 import {CookiePanel} from './panels/CookiePanel';
 import {RequestPanel} from './panels/RequestPanel';
 import {ResponsePanel} from './panels/ResponsePanel';
+import {useActiveTab} from '@/hooks/useActiveTab';
 import {useAppearance} from '@/hooks/useAppearance';
 import {useSettings} from '@/hooks/useSettings';
-import {listCookies, removeCookie, saveCookie} from '@/lib/cookies';
+import {removeCookie, saveCookie} from '@/lib/cookies';
 import {
   cookiesToCsv,
   cookiesToJson,
@@ -29,10 +30,8 @@ import {
 } from '@/lib/format';
 import type {DataFormat} from '@/components/SplitButton';
 import {getPreset} from '@/lib/presets';
-import {requestSnapshot} from '@/Background/messaging';
 import {captureRelevance} from '@/lib/hosts';
-import type {CaptureStatus} from '@/types/messages';
-import type {CapturedRequest, CookieRecord, CustomHeader, HeaderEntry} from '@/types';
+import type {CapturedRequest, CustomHeader, HeaderEntry} from '@/types';
 
 type Tab = 'request' | 'response' | 'cookies';
 
@@ -60,12 +59,17 @@ export function Popup(): React.JSX.Element {
   const {settings, update} = useSettings();
   useAppearance(settings);
 
-  const [tabId, setTabId] = useState<number | null>(null);
-  const [tabUrl, setTabUrl] = useState('');
-  const [status, setStatus] = useState<CaptureStatus>('empty');
-  const [requests, setRequests] = useState<CapturedRequest[]>([]);
-  const [selected, setSelected] = useState(0);
-  const [cookies, setCookies] = useState<CookieRecord[]>([]);
+  const {tabId, tabUrl, status, requests, cookies, refreshCookies} = useActiveTab();
+
+  // The selection indexes into one tab's requests, so it is held against the
+  // tab it was made on and falls back to the first request on any other.
+  const [selection, setSelection] = useState<{tabId: number | null; index: number}>({
+    tabId: null,
+    index: 0,
+  });
+  const selected = selection.tabId === tabId ? selection.index : 0;
+  const setSelected = (index: number): void => setSelection({tabId, index});
+
   const [tab, setTab] = useState<Tab>('request');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [toast, setToast] = useState('');
@@ -73,27 +77,6 @@ export function Popup(): React.JSX.Element {
   const notify = useCallback((message: string) => {
     setToast(message);
     window.setTimeout(() => setToast(''), 1800);
-  }, []);
-
-  useEffect(() => {
-    void (async () => {
-      const [active] = await browser.tabs.query({active: true, currentWindow: true});
-      if (!active?.id) {
-        setStatus('restricted');
-        return;
-      }
-
-      setTabId(active.id);
-      setTabUrl(active.url ?? '');
-
-      const snapshot = await requestSnapshot(active.id);
-      setStatus(snapshot.status);
-      setRequests(snapshot.requests);
-
-      if (active.url?.startsWith('http')) {
-        setCookies(await listCookies(active.url).catch(() => []));
-      }
-    })();
   }, []);
 
   const request = requests[selected];
@@ -119,11 +102,6 @@ export function Popup(): React.JSX.Element {
   const relevance = captureRelevance(tabUrl, documentRequest?.url);
   const stale = relevance === 'same-document';
   const foreign = relevance === 'foreign';
-
-  const refreshCookies = useCallback(async () => {
-    if (!tabUrl.startsWith('http')) return;
-    setCookies(await listCookies(tabUrl).catch(() => []));
-  }, [tabUrl]);
 
   const onCustomHeadersChange = (next: CustomHeader[]): void => {
     void update({hostHeaders: {...settings.hostHeaders, [host]: next}});
@@ -250,7 +228,9 @@ export function Popup(): React.JSX.Element {
   const reload = (): void => {
     if (tabId === null) return;
     void browser.tabs.reload(tabId);
-    window.close();
+    // A popup is in the way of the page it just reloaded and is cheap to
+    // reopen. A panel sits beside the page and is meant to stay.
+    if (document.body.classList.contains('popup-frame')) window.close();
   };
 
   if (status !== 'ok' || !request || foreign) {

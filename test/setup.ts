@@ -1,6 +1,13 @@
 import '@testing-library/jest-dom/vitest';
 import {vi} from 'vitest';
 
+/** jsdom implements no media queries, and the theme preference reads one. */
+window.matchMedia ??= vi.fn(() => ({
+  matches: false,
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+})) as unknown as typeof window.matchMedia;
+
 /**
  * The extension APIs are only ever reached through the store and messaging
  * wrappers, so a single stub at the polyfill boundary covers every test.
@@ -39,6 +46,15 @@ vi.mock('webextension-polyfill', () => {
         get: vi.fn(async () => undefined),
         reload: vi.fn(),
         onRemoved: {addListener: vi.fn()},
+        onActivated: {addListener: vi.fn(), removeListener: vi.fn()},
+        onUpdated: {addListener: vi.fn(), removeListener: vi.fn()},
+      },
+      action: {
+        setPopup: vi.fn(async () => undefined),
+        setBadgeText: vi.fn(async () => undefined),
+        setBadgeBackgroundColor: vi.fn(async () => undefined),
+        setTitle: vi.fn(async () => undefined),
+        onClicked: {addListener: vi.fn()},
       },
       runtime: {
         sendMessage: vi.fn(async () => undefined),

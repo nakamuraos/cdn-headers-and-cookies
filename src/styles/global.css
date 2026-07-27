@@ -199,6 +199,21 @@ body {
   overflow: auto;
 }
 
+/*
+  A panel is sized by the user dragging its edge, so unlike a popup it has a
+  viewport worth deriving from and the same layout flexes into it.
+*/
+.panel-frame {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  overflow: auto;
+}
+
+.panel-frame .skin-popup {
+  height: 100%;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;

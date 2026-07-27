@@ -10,6 +10,7 @@ import type {
   CustomHeader,
   Settings,
   Skin,
+  Surface,
   ThemePreference,
 } from '@/types';
 
@@ -198,6 +199,21 @@ export function Options(): React.JSX.Element {
       </Group>
 
       <Group title="Appearance">
+        <Row
+          label="Open in"
+          htmlFor="surface"
+          help="A popup closes as soon as you click back into the page. The side panel stays open while you browse, and follows the tab you are on."
+        >
+          <Select
+            id="surface"
+            value={settings.surface}
+            onChange={(e) => set({surface: e.target.value as Surface})}
+          >
+            <option value="popup">Popup</option>
+            <option value="panel">Side panel</option>
+          </Select>
+        </Row>
+
         <Row
           label="Skin"
           htmlFor="skin"

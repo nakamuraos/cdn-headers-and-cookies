@@ -2,6 +2,8 @@ export type Skin = 'modern' | 'classic';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
+export type Surface = 'popup' | 'panel';
+
 export type CdnPresetId =
   | 'auto'
   | 'akamai'
@@ -73,6 +75,8 @@ export interface Settings {
   captureSubresources: boolean;
   skin: Skin;
   theme: ThemePreference;
+  /** Which surface the toolbar icon opens. */
+  surface: Surface;
 }
 
 export const defaultSettings: Settings = {
@@ -85,6 +89,7 @@ export const defaultSettings: Settings = {
   captureSubresources: false,
   skin: 'modern',
   theme: 'system',
+  surface: 'popup',
 };
 
 export type SameSite = 'unspecified' | 'no_restriction' | 'lax' | 'strict';

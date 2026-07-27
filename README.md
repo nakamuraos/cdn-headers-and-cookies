@@ -45,6 +45,10 @@ this is a reimplementation rather than a fork.
   read apart from the browser's own.
 - **Full cookie editing** for the current domain, with the flags.
 - **Copy and export** as JSON, CSV, plain text or a curl command.
+- **Popup or side panel.** A popup closes the moment you click back into the
+  page. The side panel stays open while you browse and follows the tab you are
+  on, which is the difference between glancing at headers and working with them.
+  Chosen in settings; the popup is the default.
 - **Two skins:** a modern interface with light and dark modes, and a recreation
   of the original 2.0.6 interface.
 
@@ -69,13 +73,13 @@ this is a reimplementation rather than a fork.
 ### The 2.0.6 interface, rebuilt
 
 <div align="center">
-  <img src="docs/screenshots/6-classic-skin.png" alt="The classic skin, recreating the original interface" width="820">
+  <img src="docs/screenshots/5-classic-skin.png" alt="The classic skin, recreating the original interface" width="820">
 </div>
 
 ### Settings
 
 <div align="center">
-  <img src="docs/screenshots/7-settings.png" alt="Settings page" width="820">
+  <img src="docs/screenshots/6-settings.png" alt="Settings page" width="820">
 </div>
 
 ## Requirements
@@ -111,7 +115,8 @@ mode on, or `about:debugging` in Firefox, pointing at `extension/chrome` or
 .
 ├── src/
 │   ├── Background/      # service worker: capture, DNR rules, storage, messaging
-│   ├── Popup/           # popup UI and its three panels
+│   ├── Popup/           # the UI and its three panels, shared by both surfaces
+│   ├── Panel/           # side panel shell, mounting the same UI
 │   ├── Options/         # settings page
 │   ├── components/      # shared primitives, written once against the skin tokens
 │   ├── hooks/           # appearance and settings hooks
@@ -137,7 +142,8 @@ Built from [web-extension-starter](https://github.com/abhijithvijayan/web-extens
 by abhijithvijayan.
 
 Screenshots are taken against [MDN Web Docs](https://developer.mozilla.org),
-which is served by Fastly.
+which is served by Fastly. The cookie shot is taken against
+[GitHub](https://github.com), which sets several where MDN sets none.
 
 ## Licence
 

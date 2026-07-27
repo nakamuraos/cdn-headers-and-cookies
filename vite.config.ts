@@ -72,6 +72,7 @@ export default defineConfig(({mode}) => {
       rolldownOptions: {
         input: {
           popup: path.resolve(srcPath, 'Popup/popup.html'),
+          panel: path.resolve(srcPath, 'Panel/panel.html'),
           options: path.resolve(srcPath, 'Options/options.html'),
           background: path.resolve(srcPath, 'Background/index.ts'),
         },

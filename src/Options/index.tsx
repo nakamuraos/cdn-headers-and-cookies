@@ -1,17 +1,16 @@
-import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
+import "@/styles/global.css"
+import { Options } from "./Options"
 
-import {Options} from './Options';
-import '@/styles/global.css';
-
-const container = document.getElementById('options-root');
+const container = document.getElementById("options-root")
 
 if (!container) {
-  throw new Error('Could not find the options root container');
+  throw new Error("Could not find the options root container")
 }
 
 createRoot(container).render(
   <StrictMode>
     <Options />
-  </StrictMode>
-);
+  </StrictMode>,
+)

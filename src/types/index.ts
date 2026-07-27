@@ -1,109 +1,109 @@
-export type Skin = 'modern' | 'classic';
+export type Skin = "modern" | "classic"
 
-export type ThemePreference = 'system' | 'light' | 'dark';
+export type ThemePreference = "system" | "light" | "dark"
 
-export type Surface = 'popup' | 'panel';
+export type Surface = "popup" | "panel"
 
 export type CdnPresetId =
-  | 'auto'
-  | 'akamai'
-  | 'cloudflare'
-  | 'fastly'
-  | 'cloudfront'
-  | 'azure'
-  | 'google'
-  | 'bunny'
-  | 'netlify'
-  | 'varnish';
+  | "auto"
+  | "akamai"
+  | "cloudflare"
+  | "fastly"
+  | "cloudfront"
+  | "azure"
+  | "google"
+  | "bunny"
+  | "netlify"
+  | "varnish"
 
 export interface HeaderEntry {
-  name: string;
-  value: string;
+  name: string
+  value: string
   /** Set on request headers this extension added, so they can be told apart from the browser's. */
-  injected?: boolean;
+  injected?: boolean
 }
 
 export interface CustomHeader {
-  name: string;
-  value: string;
-  enabled: boolean;
+  name: string
+  value: string
+  enabled: boolean
 }
 
 /** One round trip. A redirect chain is several of these under one request id. */
 export interface RequestHop {
-  url: string;
-  method: string;
-  requestHeaders: HeaderEntry[];
-  responseHeaders: HeaderEntry[];
-  statusCode?: number;
-  statusLine?: string;
+  url: string
+  method: string
+  requestHeaders: HeaderEntry[]
+  responseHeaders: HeaderEntry[]
+  statusCode?: number
+  statusLine?: string
   /** Set on every hop but the last, naming where the response sent us. */
-  redirectUrl?: string;
+  redirectUrl?: string
 }
 
 export interface CapturedRequest {
-  id: string;
-  tabId: number;
-  url: string;
-  host: string;
-  method: string;
-  type: string;
-  timeStamp: number;
+  id: string
+  tabId: number
+  url: string
+  host: string
+  method: string
+  type: string
+  timeStamp: number
   /** The chain in order. The fields below mirror its final hop. */
-  hops: RequestHop[];
-  requestHeaders: HeaderEntry[];
-  responseHeaders: HeaderEntry[];
-  statusCode?: number;
-  statusLine?: string;
+  hops: RequestHop[]
+  requestHeaders: HeaderEntry[]
+  responseHeaders: HeaderEntry[]
+  statusCode?: number
+  statusLine?: string
   /** Set once the request reaches a terminal state, whether it succeeded or failed. */
-  completed: boolean;
-  error?: string;
+  completed: boolean
+  error?: string
 }
 
 export interface Settings {
-  preset: CdnPresetId;
+  preset: CdnPresetId
   /** Per-host injection toggles. A host absent from this map defaults to enabled. */
-  hostToggles: Record<string, boolean>;
+  hostToggles: Record<string, boolean>
   /** CDN identified from each host's responses, which is what Auto injects for. */
-  detectedHosts: Record<string, CdnPresetId>;
+  detectedHosts: Record<string, CdnPresetId>
   /** Custom request headers keyed by host. */
-  hostHeaders: Record<string, CustomHeader[]>;
+  hostHeaders: Record<string, CustomHeader[]>
   /** Custom request headers applied to every host. */
-  globalHeaders: CustomHeader[];
-  captureLimit: number;
+  globalHeaders: CustomHeader[]
+  captureLimit: number
   /** When off, only the top-level document request is recorded, as in 2.0.6. */
-  captureSubresources: boolean;
-  skin: Skin;
-  theme: ThemePreference;
+  captureSubresources: boolean
+  skin: Skin
+  theme: ThemePreference
   /** Which surface the toolbar icon opens. */
-  surface: Surface;
+  surface: Surface
 }
 
 export const defaultSettings: Settings = {
-  preset: 'auto',
+  preset: "auto",
   hostToggles: {},
   detectedHosts: {},
   hostHeaders: {},
   globalHeaders: [],
   captureLimit: 200,
   captureSubresources: false,
-  skin: 'modern',
-  theme: 'system',
-  surface: 'popup',
-};
+  skin: "modern",
+  theme: "system",
+  surface: "popup",
+}
 
-export type SameSite = 'unspecified' | 'no_restriction' | 'lax' | 'strict';
+export type SameSite = "unspecified" | "no_restriction" | "lax" | "strict"
 
 /** Cookies are edited in the popup as plain objects and mapped onto the cookies API on save. */
 export interface CookieRecord {
-  name: string;
-  value: string;
-  domain: string;
-  path: string;
-  secure: boolean;
-  httpOnly: boolean;
-  sameSite: SameSite;
-  session: boolean;
-  expirationDate?: number;
-  storeId?: string;
+  name: string
+  value: string
+  domain: string
+  path: string
+  secure: boolean
+  httpOnly: boolean
+  sameSite: SameSite
+  session: boolean
+  expirationDate?: number
+  storeId?: string
 }

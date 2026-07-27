@@ -1,23 +1,23 @@
-import type {CapturedRequest, CookieRecord, HeaderEntry} from '@/types';
+import type { CapturedRequest, CookieRecord, HeaderEntry } from "@/types"
 
 function csvCell(value: string): string {
   if (/[",\n\r]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`;
+    return `"${value.replace(/"/g, '""')}"`
   }
-  return value;
+  return value
 }
 
 export function toCsv(rows: string[][]): string {
-  return rows.map((row) => row.map(csvCell).join(',')).join('\r\n');
+  return rows.map((row) => row.map(csvCell).join(",")).join("\r\n")
 }
 
 export function headersToCsv(headers: HeaderEntry[]): string {
-  return toCsv([['Name', 'Value'], ...headers.map((h) => [h.name, h.value])]);
+  return toCsv([["Name", "Value"], ...headers.map((h) => [h.name, h.value])])
 }
 
 export function cookiesToCsv(cookies: CookieRecord[]): string {
   return toCsv([
-    ['Name', 'Value', 'Domain', 'Path', 'Secure', 'HttpOnly', 'SameSite', 'Expires'],
+    ["Name", "Value", "Domain", "Path", "Secure", "HttpOnly", "SameSite", "Expires"],
     ...cookies.map((c) => [
       c.name,
       c.value,
@@ -26,11 +26,9 @@ export function cookiesToCsv(cookies: CookieRecord[]): string {
       String(c.secure),
       String(c.httpOnly),
       c.sameSite,
-      c.session || !c.expirationDate
-        ? 'Session'
-        : new Date(c.expirationDate * 1000).toISOString(),
+      c.session || !c.expirationDate ? "Session" : new Date(c.expirationDate * 1000).toISOString(),
     ]),
-  ]);
+  ])
 }
 
 export function requestToJson(request: CapturedRequest, cookies: CookieRecord[]): string {
@@ -41,76 +39,68 @@ export function requestToJson(request: CapturedRequest, cookies: CookieRecord[])
       type: request.type,
       status: request.statusCode,
       statusLine: request.statusLine,
-      requestHeaders: Object.fromEntries(
-        request.requestHeaders.map((h) => [h.name, h.value])
-      ),
-      responseHeaders: Object.fromEntries(
-        request.responseHeaders.map((h) => [h.name, h.value])
-      ),
+      requestHeaders: Object.fromEntries(request.requestHeaders.map((h) => [h.name, h.value])),
+      responseHeaders: Object.fromEntries(request.responseHeaders.map((h) => [h.name, h.value])),
       cookies,
     },
     null,
-    2
-  );
+    2,
+  )
 }
 
 function shellQuote(value: string): string {
-  return `'${value.replace(/'/g, `'\\''`)}'`;
+  return `'${value.replace(/'/g, `'\\''`)}'`
 }
 
 export function requestToCurl(request: CapturedRequest): string {
-  const parts = [`curl ${shellQuote(request.url)}`];
+  const parts = [`curl ${shellQuote(request.url)}`]
 
-  if (request.method && request.method !== 'GET') {
-    parts.push(`  -X ${request.method}`);
+  if (request.method && request.method !== "GET") {
+    parts.push(`  -X ${request.method}`)
   }
 
   for (const header of request.requestHeaders) {
     // Pseudo-headers describe the HTTP/2 frame rather than the request itself.
-    if (header.name.startsWith(':')) continue;
-    parts.push(`  -H ${shellQuote(`${header.name}: ${header.value}`)}`);
+    if (header.name.startsWith(":")) continue
+    parts.push(`  -H ${shellQuote(`${header.name}: ${header.value}`)}`)
   }
 
-  return parts.join(' \\\n');
+  return parts.join(" \\\n")
 }
 
 export function downloadText(filename: string, contents: string, mime: string): void {
-  const blob = new Blob([contents], {type: `${mime};charset=utf-8`});
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
+  const blob = new Blob([contents], { type: `${mime};charset=utf-8` })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement("a")
 
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
+  anchor.href = url
+  anchor.download = filename
+  anchor.click()
 
-  URL.revokeObjectURL(url);
+  URL.revokeObjectURL(url)
 }
 
 export async function copyText(contents: string): Promise<void> {
-  await navigator.clipboard.writeText(contents);
+  await navigator.clipboard.writeText(contents)
 }
 
 export function safeFilename(host: string, suffix: string, ext: string): string {
-  const stem = host.replace(/[^a-z0-9.-]/gi, '_') || 'capture';
-  return `${stem}-${suffix}.${ext}`;
+  const stem = host.replace(/[^a-z0-9.-]/gi, "_") || "capture"
+  return `${stem}-${suffix}.${ext}`
 }
 
 export function headersToJson(headers: HeaderEntry[]): string {
-  return JSON.stringify(
-    Object.fromEntries(headers.map((h) => [h.name, h.value])),
-    null,
-    2
-  );
+  return JSON.stringify(Object.fromEntries(headers.map((h) => [h.name, h.value])), null, 2)
 }
 
 export function headersToText(headers: HeaderEntry[]): string {
-  return headers.map((h) => `${h.name}: ${h.value}`).join('\n');
+  return headers.map((h) => `${h.name}: ${h.value}`).join("\n")
 }
 
 export function cookiesToJson(cookies: CookieRecord[]): string {
-  return JSON.stringify(cookies, null, 2);
+  return JSON.stringify(cookies, null, 2)
 }
 
 export function cookiesToText(cookies: CookieRecord[]): string {
-  return cookies.map((c) => `${c.name}=${c.value}`).join('\n');
+  return cookies.map((c) => `${c.name}=${c.value}`).join("\n")
 }

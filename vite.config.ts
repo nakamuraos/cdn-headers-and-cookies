@@ -1,39 +1,33 @@
-import {defineConfig} from 'vite';
-import path from 'node:path';
-import process from 'node:process';
-import {readFileSync} from 'node:fs';
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
-import zipPack from 'vite-plugin-zip-pack';
-import checker from 'vite-plugin-checker';
-import clean from 'vite-plugin-clean';
-import WextManifest from 'vite-plugin-wext-manifest';
+import tailwindcss from "@tailwindcss/vite"
+import react from "@vitejs/plugin-react"
+import { readFileSync } from "node:fs"
+import path from "node:path"
+import process from "node:process"
+import { defineConfig } from "vite"
+import type { Plugin } from "vite"
+import checker from "vite-plugin-checker"
+import clean from "vite-plugin-clean"
+import WextManifest from "vite-plugin-wext-manifest"
+import zipPack from "vite-plugin-zip-pack"
+import { isMacOSMetadata, removeMacOSMetadata } from "./scripts/clean-macos-metadata.mjs"
 
-import {
-  isMacOSMetadata,
-  removeMacOSMetadata,
-} from './scripts/clean-macos-metadata.mjs';
+export default defineConfig(({ mode }) => {
+  const isDevelopment = mode !== "production"
+  const srcPath = path.resolve(__dirname, "src")
+  const destPath = path.resolve(__dirname, "extension")
+  const targetBrowser = process.env.TARGET_BROWSER || "chrome"
 
-import type {Plugin} from 'vite';
-
-export default defineConfig(({mode}) => {
-  const isDevelopment = mode !== 'production';
-  const srcPath = path.resolve(__dirname, 'src');
-  const destPath = path.resolve(__dirname, 'extension');
-  const targetBrowser = process.env.TARGET_BROWSER || 'chrome';
-
-  const outDir = path.resolve(destPath, targetBrowser);
-  const zipFileName =
-    targetBrowser === 'firefox' ? `${targetBrowser}.xpi` : `${targetBrowser}.zip`;
+  const outDir = path.resolve(destPath, targetBrowser)
+  const zipFileName = targetBrowser === "firefox" ? `${targetBrowser}.xpi` : `${targetBrowser}.zip`
 
   return {
     root: srcPath,
 
-    publicDir: path.resolve(srcPath, 'public'),
+    publicDir: path.resolve(srcPath, "public"),
 
     resolve: {
       alias: {
-        '@': srcPath,
+        "@": srcPath,
       },
     },
 
@@ -42,10 +36,10 @@ export default defineConfig(({mode}) => {
       __TARGET_BROWSER__: JSON.stringify(targetBrowser),
       __APP_VERSION__: JSON.stringify(
         (
-          JSON.parse(
-            readFileSync(path.resolve(__dirname, 'package.json'), 'utf8')
-          ) as {version: string}
-        ).version
+          JSON.parse(readFileSync(path.resolve(__dirname, "package.json"), "utf8")) as {
+            version: string
+          }
+        ).version,
       ),
     },
 
@@ -53,11 +47,11 @@ export default defineConfig(({mode}) => {
       react(),
       tailwindcss(),
 
-      clean({targetFiles: [path.resolve(destPath, zipFileName)]}) as Plugin,
+      clean({ targetFiles: [path.resolve(destPath, zipFileName)] }) as Plugin,
 
-      checker({typescript: {tsconfigPath: './tsconfig.json'}}),
+      checker({ typescript: { tsconfigPath: "./tsconfig.json" } }),
 
-      WextManifest({manifestPath: 'manifest.json', usePackageJSONVersion: true}),
+      WextManifest({ manifestPath: "manifest.json", usePackageJSONVersion: true }),
 
       !isDevelopment &&
         zipPack({
@@ -69,7 +63,7 @@ export default defineConfig(({mode}) => {
         }),
 
       {
-        name: 'strip-macos-metadata',
+        name: "strip-macos-metadata",
         writeBundle: () => removeMacOSMetadata(outDir),
       } satisfies Plugin,
     ],
@@ -77,38 +71,38 @@ export default defineConfig(({mode}) => {
     build: {
       outDir,
       emptyOutDir: !isDevelopment,
-      sourcemap: isDevelopment ? 'inline' : false,
-      minify: mode === 'production',
+      sourcemap: isDevelopment ? "inline" : false,
+      minify: mode === "production",
 
       rolldownOptions: {
         input: {
-          popup: path.resolve(srcPath, 'Popup/popup.html'),
-          panel: path.resolve(srcPath, 'Panel/panel.html'),
-          options: path.resolve(srcPath, 'Options/options.html'),
-          background: path.resolve(srcPath, 'Background/index.ts'),
+          popup: path.resolve(srcPath, "Popup/popup.html"),
+          panel: path.resolve(srcPath, "Panel/panel.html"),
+          options: path.resolve(srcPath, "Options/options.html"),
+          background: path.resolve(srcPath, "Background/index.ts"),
         },
 
         output: {
-          entryFileNames: 'assets/js/[name].bundle.js',
+          entryFileNames: "assets/js/[name].bundle.js",
           assetFileNames: (assetInfo) => {
             if (assetInfo.names?.[0]?.match(/\.css$/)) {
-              return 'assets/css/[name]-[hash].css';
+              return "assets/css/[name]-[hash].css"
             }
-            return 'assets/[name]-[hash].[ext]';
+            return "assets/[name]-[hash].[ext]"
           },
-          chunkFileNames: 'assets/js/[name]-[hash].chunk.js',
+          chunkFileNames: "assets/js/[name]-[hash].chunk.js",
 
           // Diagnostic statements are stripped by the minifier, so production
           // bundles ship without console output.
           minify:
-            mode === 'production' &&
+            mode === "production" &&
             ({
-              compress: {dropConsole: true, dropDebugger: true},
+              compress: { dropConsole: true, dropDebugger: true },
               mangle: true,
               codegen: true,
             } as const),
         },
       },
     },
-  };
-});
+  }
+})

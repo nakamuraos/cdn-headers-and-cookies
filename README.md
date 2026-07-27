@@ -39,7 +39,7 @@ this is a reimplementation rather than a fork.
   are injected on the next request, so headers like `X-Cache-Key` and
   `X-Check-Cacheable` appear where the CDN supports them.
 - **Follows redirects.** The whole chain is recorded and each hop is selectable,
-  because the headers that *caused* a redirect are usually the interesting ones.
+  because the headers that _caused_ a redirect are usually the interesting ones.
   The toolbar icon carries the status code, or `× N` once the request redirected.
 - **Custom request headers,** per host or globally, marked in the table so they
   read apart from the browser's own.

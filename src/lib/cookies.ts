@@ -1,6 +1,5 @@
-import browser from 'webextension-polyfill';
-
-import type {CookieRecord} from '@/types';
+import browser from "webextension-polyfill"
+import type { CookieRecord } from "@/types"
 
 function toRecord(cookie: browser.Cookies.Cookie): CookieRecord {
   return {
@@ -10,11 +9,11 @@ function toRecord(cookie: browser.Cookies.Cookie): CookieRecord {
     path: cookie.path,
     secure: cookie.secure,
     httpOnly: cookie.httpOnly,
-    sameSite: cookie.sameSite as CookieRecord['sameSite'],
+    sameSite: cookie.sameSite as CookieRecord["sameSite"],
     session: cookie.session,
     expirationDate: cookie.expirationDate,
     storeId: cookie.storeId,
-  };
+  }
 }
 
 /**
@@ -22,17 +21,17 @@ function toRecord(cookie: browser.Cookies.Cookie): CookieRecord {
  * a wildcard cookie and is not part of a valid URL.
  */
 function cookieUrl(cookie: CookieRecord): string {
-  const scheme = cookie.secure ? 'https' : 'http';
-  const domain = cookie.domain.replace(/^\./, '');
+  const scheme = cookie.secure ? "https" : "http"
+  const domain = cookie.domain.replace(/^\./, "")
 
-  return `${scheme}://${domain}${cookie.path}`;
+  return `${scheme}://${domain}${cookie.path}`
 }
 
 export async function listCookies(url: string): Promise<CookieRecord[]> {
-  const {hostname} = new URL(url);
-  const cookies = await browser.cookies.getAll({domain: hostname});
+  const { hostname } = new URL(url)
+  const cookies = await browser.cookies.getAll({ domain: hostname })
 
-  return cookies.map(toRecord).sort((a, b) => a.name.localeCompare(b.name));
+  return cookies.map(toRecord).sort((a, b) => a.name.localeCompare(b.name))
 }
 
 export async function saveCookie(cookie: CookieRecord): Promise<void> {
@@ -45,33 +44,33 @@ export async function saveCookie(cookie: CookieRecord): Promise<void> {
     httpOnly: cookie.httpOnly,
     sameSite: cookie.sameSite,
     // Host-only cookies must not carry a domain, or the browser widens their scope.
-    ...(cookie.domain.startsWith('.') ? {domain: cookie.domain} : {}),
-    ...(cookie.session ? {} : {expirationDate: cookie.expirationDate}),
-    ...(cookie.storeId ? {storeId: cookie.storeId} : {}),
-  });
+    ...(cookie.domain.startsWith(".") ? { domain: cookie.domain } : {}),
+    ...(cookie.session ? {} : { expirationDate: cookie.expirationDate }),
+    ...(cookie.storeId ? { storeId: cookie.storeId } : {}),
+  })
 }
 
 export async function removeCookie(cookie: CookieRecord): Promise<void> {
   await browser.cookies.remove({
     url: cookieUrl(cookie),
     name: cookie.name,
-    ...(cookie.storeId ? {storeId: cookie.storeId} : {}),
-  });
+    ...(cookie.storeId ? { storeId: cookie.storeId } : {}),
+  })
 }
 
 export function describeFlags(cookie: CookieRecord): string[] {
-  const flags: string[] = [];
+  const flags: string[] = []
 
-  if (cookie.secure) flags.push('Secure');
-  if (cookie.httpOnly) flags.push('HttpOnly');
-  if (cookie.sameSite && cookie.sameSite !== 'unspecified') {
-    flags.push(`SameSite=${cookie.sameSite}`);
+  if (cookie.secure) flags.push("Secure")
+  if (cookie.httpOnly) flags.push("HttpOnly")
+  if (cookie.sameSite && cookie.sameSite !== "unspecified") {
+    flags.push(`SameSite=${cookie.sameSite}`)
   }
   flags.push(
     cookie.session || !cookie.expirationDate
-      ? 'Session'
-      : `Expires ${new Date(cookie.expirationDate * 1000).toISOString().slice(0, 10)}`
-  );
+      ? "Session"
+      : `Expires ${new Date(cookie.expirationDate * 1000).toISOString().slice(0, 10)}`,
+  )
 
-  return flags;
+  return flags
 }

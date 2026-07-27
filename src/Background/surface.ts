@@ -1,24 +1,23 @@
-import browser from 'webextension-polyfill';
+import browser from "webextension-polyfill"
+import type { Settings } from "@/types"
 
-import type {Settings} from '@/types';
-
-const POPUP_PAGE = 'Popup/popup.html';
+const POPUP_PAGE = "Popup/popup.html"
 
 interface SidePanelApi {
-  setPanelBehavior?: (options: {openPanelOnActionClick: boolean}) => Promise<void>;
-  open: (options: {windowId?: number}) => Promise<void>;
+  setPanelBehavior?: (options: { openPanelOnActionClick: boolean }) => Promise<void>
+  open: (options: { windowId?: number }) => Promise<void>
 }
 
 interface SidebarActionApi {
-  open: () => Promise<void>;
+  open: () => Promise<void>
 }
 
 function sidePanel(): SidePanelApi | undefined {
-  return (browser as unknown as {sidePanel?: SidePanelApi}).sidePanel;
+  return (browser as unknown as { sidePanel?: SidePanelApi }).sidePanel
 }
 
 function sidebarAction(): SidebarActionApi | undefined {
-  return (browser as unknown as {sidebarAction?: SidebarActionApi}).sidebarAction;
+  return (browser as unknown as { sidebarAction?: SidebarActionApi }).sidebarAction
 }
 
 /**
@@ -26,7 +25,7 @@ function sidebarAction(): SidebarActionApi | undefined {
  * namespace, so the panel surface has to collapse back to the popup there.
  */
 export function panelSupported(): boolean {
-  return Boolean(sidePanel() ?? sidebarAction());
+  return Boolean(sidePanel() ?? sidebarAction())
 }
 
 /**
@@ -38,18 +37,18 @@ export function panelSupported(): boolean {
 export async function applySurface(settings: Settings): Promise<void> {
   // Honouring the panel where none can open would leave the click doing
   // nothing, so the setting is carried but not acted on.
-  const panel = settings.surface === 'panel' && panelSupported();
+  const panel = settings.surface === "panel" && panelSupported()
 
-  await browser.action.setPopup({popup: panel ? '' : POPUP_PAGE});
+  await browser.action.setPopup({ popup: panel ? "" : POPUP_PAGE })
 
   // Opening from the click keeps the user gesture out of extension code, which
   // is the only way to open a panel without one to hand.
   await sidePanel()
-    ?.setPanelBehavior?.({openPanelOnActionClick: panel})
+    ?.setPanelBehavior?.({ openPanelOnActionClick: panel })
     .catch(() => {
       // A browser that declares the namespace without the behaviour falls back
       // to opening from the click handler below.
-    });
+    })
 }
 
 /**
@@ -57,14 +56,14 @@ export async function applySurface(settings: Settings): Promise<void> {
  * Called synchronously from the click so the gesture is still in hand.
  */
 export function openPanel(windowId: number | undefined): void {
-  const panel = sidePanel();
+  const panel = sidePanel()
 
   if (panel && !panel.setPanelBehavior) {
-    void panel.open({windowId});
-    return;
+    void panel.open({ windowId })
+    return
   }
 
-  void sidebarAction()?.open();
+  void sidebarAction()?.open()
 }
 
 /**
@@ -73,5 +72,5 @@ export function openPanel(windowId: number | undefined): void {
  * on storage, and the user gesture the panel needs does not survive the wait.
  */
 export function registerSurface(): void {
-  browser.action.onClicked.addListener((tab) => openPanel(tab.windowId));
+  browser.action.onClicked.addListener((tab) => openPanel(tab.windowId))
 }

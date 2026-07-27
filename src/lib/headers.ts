@@ -1,11 +1,11 @@
-import type {CdnPreset} from './presets';
-import type {HeaderEntry} from '@/types';
+import type { HeaderEntry } from "@/types"
+import type { CdnPreset } from "./presets"
 
-export type CacheState = 'ok' | 'warn' | 'crit' | 'none';
+export type CacheState = "ok" | "warn" | "crit" | "none"
 
 export interface HeaderGroups {
-  cdn: HeaderEntry[];
-  other: HeaderEntry[];
+  cdn: HeaderEntry[]
+  other: HeaderEntry[]
 }
 
 /**
@@ -13,30 +13,24 @@ export interface HeaderGroups {
  * preserving the order in which the preset lists them so the most useful
  * values stay at the top.
  */
-export function groupResponseHeaders(
-  headers: HeaderEntry[],
-  preset: CdnPreset
-): HeaderGroups {
-  const known = new Set(preset.responseHeaders);
-  const rank = new Map(preset.responseHeaders.map((name, i) => [name, i]));
+export function groupResponseHeaders(headers: HeaderEntry[], preset: CdnPreset): HeaderGroups {
+  const known = new Set(preset.responseHeaders)
+  const rank = new Map(preset.responseHeaders.map((name, i) => [name, i]))
 
-  const cdn: HeaderEntry[] = [];
-  const other: HeaderEntry[] = [];
+  const cdn: HeaderEntry[] = []
+  const other: HeaderEntry[] = []
 
   for (const header of headers) {
     if (known.has(header.name.toLowerCase())) {
-      cdn.push(header);
+      cdn.push(header)
     } else {
-      other.push(header);
+      other.push(header)
     }
   }
 
-  cdn.sort(
-    (a, b) =>
-      (rank.get(a.name.toLowerCase()) ?? 0) - (rank.get(b.name.toLowerCase()) ?? 0)
-  );
+  cdn.sort((a, b) => (rank.get(a.name.toLowerCase()) ?? 0) - (rank.get(b.name.toLowerCase()) ?? 0))
 
-  return {cdn, other};
+  return { cdn, other }
 }
 
 /**
@@ -44,60 +38,60 @@ export function groupResponseHeaders(
  * misses are distinguishable without reading the string.
  */
 export function cacheState(name: string, value: string, preset: CdnPreset): CacheState {
-  if (!preset.cacheStateHeaders.includes(name.toLowerCase())) return 'none';
+  if (!preset.cacheStateHeaders.includes(name.toLowerCase())) return "none"
 
-  const v = value.toLowerCase();
+  const v = value.toLowerCase()
 
   if (
-    v.includes('refresh') ||
-    v.includes('revalidated') ||
-    v.includes('stale') ||
-    v.includes('expired') ||
-    v.includes('updating')
+    v.includes("refresh") ||
+    v.includes("revalidated") ||
+    v.includes("stale") ||
+    v.includes("expired") ||
+    v.includes("updating")
   ) {
-    return 'warn';
+    return "warn"
   }
   if (
-    v.includes('miss') ||
-    v === 'no' ||
-    v.includes('bypass') ||
-    v.includes('dynamic') ||
-    v.includes('error') ||
-    v.includes('uncacheable')
+    v.includes("miss") ||
+    v === "no" ||
+    v.includes("bypass") ||
+    v.includes("dynamic") ||
+    v.includes("error") ||
+    v.includes("uncacheable")
   ) {
-    return 'crit';
+    return "crit"
   }
-  if (v.includes('hit') || v === 'yes') return 'ok';
+  if (v.includes("hit") || v === "yes") return "ok"
 
-  return 'none';
+  return "none"
 }
 
 export function statusSeverity(status: number | undefined): CacheState {
-  if (status === undefined) return 'none';
-  if (status >= 400) return 'crit';
-  if (status >= 300) return 'warn';
-  return 'ok';
+  if (status === undefined) return "none"
+  if (status >= 400) return "crit"
+  if (status >= 300) return "warn"
+  return "ok"
 }
 
 export function sortHeaders(
   headers: HeaderEntry[],
-  key: 'name' | 'value',
-  dir: 'asc' | 'desc'
+  key: "name" | "value",
+  dir: "asc" | "desc",
 ): HeaderEntry[] {
-  const factor = dir === 'asc' ? 1 : -1;
-  return [...headers].sort((a, b) => a[key].localeCompare(b[key]) * factor);
+  const factor = dir === "asc" ? 1 : -1
+  return [...headers].sort((a, b) => a[key].localeCompare(b[key]) * factor)
 }
 
 export function filterHeaders(headers: HeaderEntry[], query: string): HeaderEntry[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return headers;
+  const q = query.trim().toLowerCase()
+  if (!q) return headers
   return headers.filter(
-    (h) => h.name.toLowerCase().includes(q) || h.value.toLowerCase().includes(q)
-  );
+    (h) => h.name.toLowerCase().includes(q) || h.value.toLowerCase().includes(q),
+  )
 }
 
 /** The pseudo-header the capture prepends to every response. */
-export const STATUS_HEADER = 'status';
+export const STATUS_HEADER = "status"
 
 /**
  * Splits a status line such as "HTTP/1.1 404 Not Found" into its code and
@@ -105,9 +99,9 @@ export const STATUS_HEADER = 'status';
  * phrase can be surfaced on its own.
  */
 export function statusFromLine(value: string): number | undefined {
-  const match = /\b([1-5]\d{2})\b/.exec(value);
+  const match = /\b([1-5]\d{2})\b/.exec(value)
 
-  return match ? Number(match[1]) : undefined;
+  return match ? Number(match[1]) : undefined
 }
 
 /**
@@ -115,49 +109,49 @@ export function statusFromLine(value: string): number | undefined {
  * These are the standard phrases, used when the line does not supply one.
  */
 const REASONS: Record<number, string> = {
-  200: 'OK',
-  201: 'Created',
-  202: 'Accepted',
-  204: 'No Content',
-  206: 'Partial Content',
-  301: 'Moved Permanently',
-  302: 'Found',
-  303: 'See Other',
-  304: 'Not Modified',
-  307: 'Temporary Redirect',
-  308: 'Permanent Redirect',
-  400: 'Bad Request',
-  401: 'Unauthorized',
-  403: 'Forbidden',
-  404: 'Not Found',
-  405: 'Method Not Allowed',
-  406: 'Not Acceptable',
-  408: 'Request Timeout',
-  409: 'Conflict',
-  410: 'Gone',
-  412: 'Precondition Failed',
-  413: 'Payload Too Large',
-  415: 'Unsupported Media Type',
+  200: "OK",
+  201: "Created",
+  202: "Accepted",
+  204: "No Content",
+  206: "Partial Content",
+  301: "Moved Permanently",
+  302: "Found",
+  303: "See Other",
+  304: "Not Modified",
+  307: "Temporary Redirect",
+  308: "Permanent Redirect",
+  400: "Bad Request",
+  401: "Unauthorized",
+  403: "Forbidden",
+  404: "Not Found",
+  405: "Method Not Allowed",
+  406: "Not Acceptable",
+  408: "Request Timeout",
+  409: "Conflict",
+  410: "Gone",
+  412: "Precondition Failed",
+  413: "Payload Too Large",
+  415: "Unsupported Media Type",
   418: "I'm a Teapot",
-  421: 'Misdirected Request',
-  422: 'Unprocessable Content',
-  425: 'Too Early',
-  429: 'Too Many Requests',
-  451: 'Unavailable For Legal Reasons',
-  500: 'Internal Server Error',
-  501: 'Not Implemented',
-  502: 'Bad Gateway',
-  503: 'Service Unavailable',
-  504: 'Gateway Timeout',
-  505: 'HTTP Version Not Supported',
-  511: 'Network Authentication Required',
-};
+  421: "Misdirected Request",
+  422: "Unprocessable Content",
+  425: "Too Early",
+  429: "Too Many Requests",
+  451: "Unavailable For Legal Reasons",
+  500: "Internal Server Error",
+  501: "Not Implemented",
+  502: "Bad Gateway",
+  503: "Service Unavailable",
+  504: "Gateway Timeout",
+  505: "HTTP Version Not Supported",
+  511: "Network Authentication Required",
+}
 
 export function reasonFromLine(value: string): string {
-  const match = /\b[1-5]\d{2}\b\s+(.+)$/.exec(value.trim());
-  if (match?.[1]) return match[1].trim();
+  const match = /\b[1-5]\d{2}\b\s+(.+)$/.exec(value.trim())
+  if (match?.[1]) return match[1].trim()
 
-  const status = statusFromLine(value);
+  const status = statusFromLine(value)
 
-  return status === undefined ? '' : (REASONS[status] ?? '');
+  return status === undefined ? "" : (REASONS[status] ?? "")
 }

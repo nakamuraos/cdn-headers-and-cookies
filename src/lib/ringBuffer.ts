@@ -1,15 +1,15 @@
-import type {CapturedRequest, HeaderEntry} from '@/types';
+import type { CapturedRequest, HeaderEntry } from "@/types"
 
 /** A single header value long enough to threaten the session storage quota. */
-export const MAX_HEADER_VALUE = 8 * 1024;
+export const MAX_HEADER_VALUE = 8 * 1024
 
 export function truncateValue(value: string): string {
-  if (value.length <= MAX_HEADER_VALUE) return value;
-  return `${value.slice(0, MAX_HEADER_VALUE)}… (truncated)`;
+  if (value.length <= MAX_HEADER_VALUE) return value
+  return `${value.slice(0, MAX_HEADER_VALUE)}… (truncated)`
 }
 
 export function truncateHeaders(headers: HeaderEntry[]): HeaderEntry[] {
-  return headers.map((h) => ({...h, value: truncateValue(h.value)}));
+  return headers.map((h) => ({ ...h, value: truncateValue(h.value) }))
 }
 
 /**
@@ -19,13 +19,13 @@ export function truncateHeaders(headers: HeaderEntry[]): HeaderEntry[] {
 export function pushRequest(
   log: CapturedRequest[],
   request: CapturedRequest,
-  limit: number
+  limit: number,
 ): CapturedRequest[] {
-  const existing = log.findIndex((r) => r.id === request.id);
+  const existing = log.findIndex((r) => r.id === request.id)
 
-  const next = existing === -1 ? [...log, request] : log.slice();
-  if (existing !== -1) next[existing] = request;
+  const next = existing === -1 ? [...log, request] : log.slice()
+  if (existing !== -1) next[existing] = request
 
-  if (limit <= 0) return [];
-  return next.length > limit ? next.slice(next.length - limit) : next;
+  if (limit <= 0) return []
+  return next.length > limit ? next.slice(next.length - limit) : next
 }

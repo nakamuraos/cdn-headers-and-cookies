@@ -1,72 +1,70 @@
-import '@testing-library/jest-dom/vitest';
-import {vi} from 'vitest';
+import "@testing-library/jest-dom/vitest"
+import { vi } from "vitest"
 
 /** jsdom implements no media queries, and the theme preference reads one. */
 window.matchMedia ??= vi.fn(() => ({
   matches: false,
   addEventListener: vi.fn(),
   removeEventListener: vi.fn(),
-})) as unknown as typeof window.matchMedia;
+})) as unknown as typeof window.matchMedia
 
 /**
  * The extension APIs are only ever reached through the store and messaging
  * wrappers, so a single stub at the polyfill boundary covers every test.
  */
-vi.mock('webextension-polyfill', () => {
-  const storage = new Map<string, unknown>();
+vi.mock("webextension-polyfill", () => {
+  const storage = new Map<string, unknown>()
 
   const area = {
     get: vi.fn(async (key: string | string[] | null) => {
-      if (key === null) return Object.fromEntries(storage);
-      const keys = Array.isArray(key) ? key : [key];
-      return Object.fromEntries(
-        keys.filter((k) => storage.has(k)).map((k) => [k, storage.get(k)])
-      );
+      if (key === null) return Object.fromEntries(storage)
+      const keys = Array.isArray(key) ? key : [key]
+      return Object.fromEntries(keys.filter((k) => storage.has(k)).map((k) => [k, storage.get(k)]))
     }),
     set: vi.fn(async (items: Record<string, unknown>) => {
-      for (const [k, v] of Object.entries(items)) storage.set(k, v);
+      for (const [k, v] of Object.entries(items)) storage.set(k, v)
     }),
     remove: vi.fn(async (key: string) => {
-      storage.delete(key);
+      storage.delete(key)
     }),
     clear: vi.fn(async () => {
-      storage.clear();
+      storage.clear()
     }),
-  };
+  }
 
   return {
     default: {
       storage: {
         local: area,
         session: area,
-        onChanged: {addListener: vi.fn(), removeListener: vi.fn()},
+        onChanged: { addListener: vi.fn(), removeListener: vi.fn() },
       },
       tabs: {
         query: vi.fn(async () => []),
         get: vi.fn(async () => undefined),
         reload: vi.fn(),
-        onRemoved: {addListener: vi.fn()},
-        onActivated: {addListener: vi.fn(), removeListener: vi.fn()},
-        onUpdated: {addListener: vi.fn(), removeListener: vi.fn()},
+        onRemoved: { addListener: vi.fn() },
+        onActivated: { addListener: vi.fn(), removeListener: vi.fn() },
+        onUpdated: { addListener: vi.fn(), removeListener: vi.fn() },
       },
       action: {
         setPopup: vi.fn(async () => undefined),
         setBadgeText: vi.fn(async () => undefined),
         setBadgeBackgroundColor: vi.fn(async () => undefined),
         setTitle: vi.fn(async () => undefined),
-        onClicked: {addListener: vi.fn()},
+        onClicked: { addListener: vi.fn() },
       },
       runtime: {
         sendMessage: vi.fn(async () => undefined),
-        onMessage: {addListener: vi.fn()},
-        onInstalled: {addListener: vi.fn()},
-        onStartup: {addListener: vi.fn()},
+        onMessage: { addListener: vi.fn() },
+        onInstalled: { addListener: vi.fn() },
+        onStartup: { addListener: vi.fn() },
       },
       webRequest: {
-        onBeforeSendHeaders: {addListener: vi.fn()},
-        onHeadersReceived: {addListener: vi.fn()},
-        onCompleted: {addListener: vi.fn()},
-        onErrorOccurred: {addListener: vi.fn()},
+        onBeforeSendHeaders: { addListener: vi.fn() },
+        onHeadersReceived: { addListener: vi.fn() },
+        onCompleted: { addListener: vi.fn() },
+        onErrorOccurred: { addListener: vi.fn() },
       },
       declarativeNetRequest: {
         getDynamicRules: vi.fn(async () => []),
@@ -78,5 +76,5 @@ vi.mock('webextension-polyfill', () => {
         remove: vi.fn(async () => undefined),
       },
     },
-  };
-});
+  }
+})

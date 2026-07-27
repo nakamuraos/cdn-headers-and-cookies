@@ -1,4 +1,4 @@
-import prettierConfigStandard from "prettier-config-standard" with { type: "json" };
+import prettierConfigStandard from "prettier-config-standard" with { type: "json" }
 
 /** @type {import("prettier").Config} */
 export default {
@@ -14,4 +14,4 @@ export default {
   importOrder: ["^react", "^@[/]", "^[./]"],
   importOrderSeparation: false,
   importOrderSortSpecifiers: true,
-};
+}

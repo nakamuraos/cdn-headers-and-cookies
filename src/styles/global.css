@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 /*
   Skins are selected by a data-skin attribute on the root element and expose the
@@ -13,8 +13,8 @@
     The 2.0.6 interface named these two faces, and both skins now use them, so
     switching skin changes colour and layout without reflowing the text.
   */
-  --font-classic: 'Segoe UI', Tahoma, sans-serif;
-  --font-classic-display: Corbel, 'Segoe UI', Tahoma, sans-serif;
+  --font-classic: "Segoe UI", Tahoma, sans-serif;
+  --font-classic-display: Corbel, "Segoe UI", Tahoma, sans-serif;
 
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
@@ -75,7 +75,7 @@
 }
 
 /* modern, dark */
-:root[data-theme='dark'] {
+:root[data-theme="dark"] {
   --surface: #1f1f1f;
   --surface-2: #181818;
   --surface-3: #2a2a2a;
@@ -101,7 +101,7 @@
   Classic recreates the 2.0.6 interface, which only ever existed in light. It
   is declared last so it wins over the theme blocks at equal specificity.
 */
-:root[data-skin='classic'] {
+:root[data-skin="classic"] {
   --surface: #ffffff;
   --surface-2: #f9f9f9;
   --surface-3: #f0f0f0;

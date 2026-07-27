@@ -9,7 +9,7 @@ state and cookies, for every request on the page.**
 
 [![Manifest V3](https://img.shields.io/badge/manifest-v3-0078d4)](https://developer.chrome.com/docs/extensions/develop/migrate)
 [![Chrome 116+](https://img.shields.io/badge/chrome-116%2B-078f00)](https://developer.chrome.com/docs/extensions)
-[![Firefox 128+](https://img.shields.io/badge/firefox-128%2B-078f00)](https://extensionworkshop.com/)
+[![Firefox 140+](https://img.shields.io/badge/firefox-140%2B-078f00)](https://extensionworkshop.com/)
 [![React 19](https://img.shields.io/badge/react-19-3794ff)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/typescript-5.9-3178c6)](https://www.typescriptlang.org)
 [![Tailwind CSS 4](https://img.shields.io/badge/tailwind-4-38bdf8)](https://tailwindcss.com)
@@ -84,9 +84,11 @@ this is a reimplementation rather than a fork.
 
 ## Requirements
 
-Chrome 116+ or Firefox 128+. Firefox 128 is the floor because header injection
-uses `declarativeNetRequest` `modifyHeaders` on both browsers rather than
-maintaining a second code path against Firefox's blocking `webRequest`.
+Chrome 116+, Firefox 140+, or Firefox for Android 142+. Header injection uses
+`declarativeNetRequest` `modifyHeaders` on both browsers, available from Firefox
+128, rather than maintaining a second code path against Firefox's blocking
+`webRequest`; the floor is raised to the releases that understand the
+`data_collection_permissions` manifest key add-on listings now require.
 
 ## Development
 

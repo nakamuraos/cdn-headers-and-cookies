@@ -22,13 +22,23 @@ function sidebarAction(): SidebarActionApi | undefined {
 }
 
 /**
+ * Whether this browser has a panel to open at all. Mobile builds carry neither
+ * namespace, so the panel surface has to collapse back to the popup there.
+ */
+export function panelSupported(): boolean {
+  return Boolean(sidePanel() ?? sidebarAction());
+}
+
+/**
  * Points the toolbar icon at the surface the settings ask for. Both halves have
  * to be set every time: a browser that opens the panel from the click outranks
  * any registered popup, so clearing the popup alone would not bring the popup
  * back, and clearing the behaviour alone would leave the click doing nothing.
  */
 export async function applySurface(settings: Settings): Promise<void> {
-  const panel = settings.surface === 'panel';
+  // Honouring the panel where none can open would leave the click doing
+  // nothing, so the setting is carried but not acted on.
+  const panel = settings.surface === 'panel' && panelSupported();
 
   await browser.action.setPopup({popup: panel ? '' : POPUP_PAGE});
 

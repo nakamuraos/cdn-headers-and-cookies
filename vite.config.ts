@@ -9,6 +9,11 @@ import checker from 'vite-plugin-checker';
 import clean from 'vite-plugin-clean';
 import WextManifest from 'vite-plugin-wext-manifest';
 
+import {
+  isMacOSMetadata,
+  removeMacOSMetadata,
+} from './scripts/clean-macos-metadata.mjs';
+
 import type {Plugin} from 'vite';
 
 export default defineConfig(({mode}) => {
@@ -59,8 +64,14 @@ export default defineConfig(({mode}) => {
           inDir: outDir,
           outDir: destPath,
           outFileName: zipFileName,
+          filter: (fileName) => !isMacOSMetadata(fileName),
           enableLogging: true,
         }),
+
+      {
+        name: 'strip-macos-metadata',
+        writeBundle: () => removeMacOSMetadata(outDir),
+      } satisfies Plugin,
     ],
 
     build: {

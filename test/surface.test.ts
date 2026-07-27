@@ -1,7 +1,12 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import browser from 'webextension-polyfill';
 
-import {applySurface, openPanel, registerSurface} from '@/Background/surface';
+import {
+  applySurface,
+  openPanel,
+  panelSupported,
+  registerSurface,
+} from '@/Background/surface';
 import {defaultSettings, type Settings, type Surface} from '@/types';
 
 function settings(surface: Surface): Settings {
@@ -47,6 +52,21 @@ afterEach(() => {
   delete stub.sidebarAction;
 });
 
+describe('panelSupported', () => {
+  it('recognises either namespace', () => {
+    asChrome();
+    expect(panelSupported()).toBe(true);
+
+    delete stub.sidePanel;
+    asFirefox();
+    expect(panelSupported()).toBe(true);
+  });
+
+  it('reports no panel where neither namespace exists', () => {
+    expect(panelSupported()).toBe(false);
+  });
+});
+
 describe('applySurface', () => {
   it('registers the popup page when the popup is the chosen surface', async () => {
     await applySurface(settings('popup'));
@@ -55,6 +75,8 @@ describe('applySurface', () => {
   });
 
   it('clears the popup so the click reaches the panel', async () => {
+    asFirefox();
+
     await applySurface(settings('panel'));
 
     expect(stub.action.setPopup).toHaveBeenCalledWith({popup: ''});
@@ -84,8 +106,12 @@ describe('applySurface', () => {
     expect(stub.action.setPopup).toHaveBeenLastCalledWith({popup: 'Popup/popup.html'});
   });
 
-  it('survives a browser that exposes no panel API at all', async () => {
-    await expect(applySurface(settings('panel'))).resolves.toBeUndefined();
+  // Mobile builds carry no panel namespace, and a cleared popup there would
+  // leave the toolbar click doing nothing with no way back to the setting.
+  it('keeps the popup registered where no panel can open', async () => {
+    await applySurface(settings('panel'));
+
+    expect(stub.action.setPopup).toHaveBeenCalledWith({popup: 'Popup/popup.html'});
   });
 });
 

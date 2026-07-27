@@ -11,8 +11,9 @@
   "scripts": {
     "dev:chrome": "cross-env TARGET_BROWSER=chrome vite build --config vite.config.ts --mode development --watch",
     "dev:firefox": "cross-env TARGET_BROWSER=firefox vite build --config vite.config.ts --mode development --watch",
-    "build:chrome": "cross-env TARGET_BROWSER=chrome vite build --config vite.config.ts",
-    "build:firefox": "cross-env TARGET_BROWSER=firefox vite build --config vite.config.ts",
+    "build:chrome": "cross-env TARGET_BROWSER=chrome vite build --config vite.config.ts && yarn clean:metadata",
+    "build:firefox": "cross-env TARGET_BROWSER=firefox vite build --config vite.config.ts && yarn clean:metadata",
+    "clean:metadata": "node scripts/clean-macos-metadata.mjs",
     "build": "yarn build:chrome && yarn build:firefox",
     "test": "vitest run",
     "test:watch": "vitest",

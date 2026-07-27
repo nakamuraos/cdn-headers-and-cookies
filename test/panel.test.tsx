@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {act, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import browser from 'webextension-polyfill';
@@ -14,6 +14,7 @@ const stub = browser as unknown as {
     onUpdated: {addListener: ReturnType<typeof vi.fn>};
   };
   runtime: {sendMessage: ReturnType<typeof vi.fn>};
+  sidebarAction?: unknown;
 };
 
 beforeEach(async () => {
@@ -27,7 +28,13 @@ beforeEach(async () => {
 });
 
 describe('the surface setting', () => {
+  afterEach(() => {
+    delete stub.sidebarAction;
+  });
+
   it('writes the chosen surface through', async () => {
+    stub.sidebarAction = {open: vi.fn()};
+
     render(<Options />);
 
     const select = await screen.findByLabelText('Open in');
@@ -42,6 +49,15 @@ describe('the surface setting', () => {
         })
       );
     });
+  });
+
+  // Mobile builds have no panel, so offering the choice would only strand the
+  // toolbar click on a surface that cannot open.
+  it('is not offered where the browser has no panel', async () => {
+    render(<Options />);
+
+    await screen.findByLabelText('Skin');
+    expect(screen.queryByLabelText('Open in')).not.toBeInTheDocument();
   });
 });
 

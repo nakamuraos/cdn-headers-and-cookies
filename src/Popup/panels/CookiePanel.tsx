@@ -21,7 +21,7 @@ function CookieEditor({
 
   return (
     <tr className='bg-surface-2'>
-      <td colSpan={4} className='skin-cell border-b border-line'>
+      <td colSpan={5} className='skin-cell border-b border-line'>
         <div className='flex flex-col gap-2'>
           <div className='flex gap-1.5'>
             <TextInput
@@ -46,6 +46,13 @@ function CookieEditor({
               onChange={(e) => setDraft({ ...draft, path: e.target.value })}
               aria-label='Cookie path'
               className='skin-mono w-24'
+            />
+            <TextInput
+              value={draft.domain}
+              onChange={(e) => setDraft({ ...draft, domain: e.target.value })}
+              aria-label='Cookie domain'
+              placeholder='Domain'
+              className='skin-mono w-28'
             />
             <Checkbox
               label='Secure'
@@ -151,11 +158,11 @@ export function CookiePanel({
       <table className='w-full table-fixed border-collapse'>
         <thead>
           <tr>
-            {["Name", "Value", "Flags", ""].map((label, i) => (
+            {["Name", "Value", "Domain", "Flags", ""].map((label, i) => (
               <th
                 key={label || "actions"}
                 scope='col'
-                style={{ width: ["20%", "auto", "20%", "56px"][i] }}
+                style={{ width: ["18%", "auto", "18%", "18%", "56px"][i] }}
                 className='skin-cell skin-sm skin-cell-rule sticky top-0 z-1 border-b border-line bg-surface-2 text-left font-semibold tracking-wider text-ink uppercase classic:tracking-normal classic:normal-case'
               >
                 {label}
@@ -178,7 +185,7 @@ export function CookiePanel({
 
           {rows.length === 0 && editing !== "new" ? (
             <tr>
-              <td colSpan={4} className='skin-cell text-ink-dim'>
+              <td colSpan={5} className='skin-cell text-ink-dim'>
                 {query.trim() ? "No cookies match that filter." : `No cookies set for ${domain}.`}
               </td>
             </tr>
@@ -204,6 +211,9 @@ export function CookiePanel({
                   </td>
                   <td className='skin-cell skin-mono skin-cell-rule border-b border-line align-top break-words'>
                     {cookie.value}
+                  </td>
+                  <td className='skin-cell skin-mono skin-cell-rule border-b border-line align-top break-words'>
+                    {cookie.domain}
                   </td>
                   <td className='skin-cell skin-cell-rule border-b border-line align-top'>
                     <span className='flex flex-wrap gap-1'>

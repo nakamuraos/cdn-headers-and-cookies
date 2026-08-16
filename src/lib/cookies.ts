@@ -28,8 +28,11 @@ function cookieUrl(cookie: CookieRecord): string {
 }
 
 export async function listCookies(url: string): Promise<CookieRecord[]> {
-  const { hostname } = new URL(url)
-  const cookies = await browser.cookies.getAll({ domain: hostname })
+  // A domain filter only matches cookies scoped to that exact host or its
+  // subdomains, so it hides the parent-domain cookies that apply to the page.
+  // Matching by URL returns every cookie the address would be sent, HttpOnly
+  // included.
+  const cookies = await browser.cookies.getAll({ url })
 
   return cookies.map(toRecord).sort((a, b) => a.name.localeCompare(b.name))
 }

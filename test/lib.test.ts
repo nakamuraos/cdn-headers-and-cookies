@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+import browser from "webextension-polyfill"
 import { withInjected } from "@/Background/capture"
+import { listCookies } from "@/lib/cookies"
 import {
   cookiesToJson,
   cookiesToText,
@@ -328,6 +330,45 @@ describe("cache state across presets", () => {
     expect(cacheState("x-cache", "RefreshHit from cloudfront", presets.cloudfront)).toBe("warn")
     expect(cacheState("cdn-cache", "BYPASS", presets.bunny)).toBe("crit")
     expect(cacheState("x-goog-cache-status", "hit", presets.google)).toBe("ok")
+  })
+})
+
+describe("listCookies", () => {
+  const getAll = vi.mocked(browser.cookies.getAll)
+
+  beforeEach(() => {
+    getAll.mockReset()
+  })
+
+  it("queries the cookies that the address would be sent, not by domain", async () => {
+    getAll.mockResolvedValue([])
+
+    await listCookies("https://www.example.com/path")
+
+    expect(getAll).toHaveBeenCalledWith({ url: "https://www.example.com/path" })
+    expect(getAll).not.toHaveBeenCalledWith({ domain: "www.example.com" })
+  })
+
+  it("keeps HttpOnly cookies in the list", async () => {
+    getAll.mockResolvedValue([
+      {
+        name: "session",
+        value: "abc",
+        domain: ".example.com",
+        hostOnly: false,
+        path: "/",
+        secure: true,
+        httpOnly: true,
+        sameSite: "lax",
+        session: true,
+        storeId: "0",
+        firstPartyDomain: "",
+      },
+    ])
+
+    const cookies = await listCookies("https://www.example.com/")
+
+    expect(cookies).toEqual([expect.objectContaining({ name: "session", httpOnly: true })])
   })
 })
 

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import browser from "webextension-polyfill"
 import { withInjected } from "@/Background/capture"
-import { listCookies } from "@/lib/cookies"
+import { listCookies, removeCookie, saveCookie } from "@/lib/cookies"
 import {
   cookiesToJson,
   cookiesToText,
@@ -333,6 +333,23 @@ describe("cache state across presets", () => {
   })
 })
 
+function cookie(overrides: Partial<browser.Cookies.Cookie>): browser.Cookies.Cookie {
+  return {
+    name: "c",
+    value: "v",
+    domain: "www.example.com",
+    hostOnly: true,
+    path: "/",
+    secure: true,
+    httpOnly: false,
+    sameSite: "lax",
+    session: true,
+    storeId: "0",
+    firstPartyDomain: "",
+    ...overrides,
+  }
+}
+
 describe("listCookies", () => {
   const getAll = vi.mocked(browser.cookies.getAll)
 
@@ -345,8 +362,54 @@ describe("listCookies", () => {
 
     await listCookies("https://www.example.com/path")
 
-    expect(getAll).toHaveBeenCalledWith({ url: "https://www.example.com/path" })
-    expect(getAll).not.toHaveBeenCalledWith({ domain: "www.example.com" })
+    expect(getAll).toHaveBeenCalledWith({ url: "https://www.example.com/path", partitionKey: {} })
+    expect(getAll).not.toHaveBeenCalledWith(expect.objectContaining({ domain: "www.example.com" }))
+  })
+
+  it("falls back to unpartitioned cookies when the browser rejects a partition key", async () => {
+    getAll.mockRejectedValueOnce(new Error("Unexpected property: 'partitionKey'"))
+    getAll.mockResolvedValueOnce([cookie({ name: "a" })])
+
+    const cookies = await listCookies("https://www.example.com/")
+
+    expect(getAll).toHaveBeenLastCalledWith({ url: "https://www.example.com/" })
+    expect(cookies.map((c) => c.name)).toEqual(["a"])
+  })
+
+  it("keeps partitioned cookies of the page's top-level site and drops other partitions", async () => {
+    getAll.mockResolvedValue([
+      cookie({ name: "plain" }),
+      cookie({ name: "own", partitionKey: { topLevelSite: "https://example.com" } }),
+      cookie({ name: "other", partitionKey: { topLevelSite: "https://other.com" } }),
+      cookie({ name: "lookalike", partitionKey: { topLevelSite: "https://ample.com" } }),
+      cookie({
+        name: "embedded",
+        partitionKey: { topLevelSite: "https://example.com", hasCrossSiteAncestor: true },
+      }),
+    ])
+
+    const cookies = await listCookies("https://www.example.com/")
+
+    expect(cookies.map((c) => c.name)).toEqual(["own", "plain"])
+    expect(cookies[0]).toEqual(
+      expect.objectContaining({ partitionKey: { topLevelSite: "https://example.com" } }),
+    )
+  })
+
+  it("reads the cookie store of the tab", async () => {
+    vi.mocked(browser.cookies.getAllCookieStores).mockResolvedValueOnce([
+      { id: "firefox-default", tabIds: [1], incognito: false },
+      { id: "firefox-container-1", tabIds: [7], incognito: false },
+    ])
+    getAll.mockResolvedValue([])
+
+    await listCookies("https://www.example.com/", 7)
+
+    expect(getAll).toHaveBeenCalledWith({
+      url: "https://www.example.com/",
+      partitionKey: {},
+      storeId: "firefox-container-1",
+    })
   })
 
   it("keeps HttpOnly cookies in the list", async () => {
@@ -369,6 +432,51 @@ describe("listCookies", () => {
     const cookies = await listCookies("https://www.example.com/")
 
     expect(cookies).toEqual([expect.objectContaining({ name: "session", httpOnly: true })])
+  })
+})
+
+describe("saveCookie and removeCookie", () => {
+  const record = {
+    name: "auth",
+    value: "1",
+    domain: "platform.example.com",
+    path: "/",
+    secure: true,
+    httpOnly: true,
+    sameSite: "no_restriction" as const,
+    session: true,
+  }
+
+  beforeEach(() => {
+    vi.mocked(browser.cookies.set).mockClear()
+    vi.mocked(browser.cookies.remove).mockClear()
+  })
+
+  it("writes a partitioned cookie back to its partition", async () => {
+    const partitionKey = { topLevelSite: "https://example.com" }
+
+    await saveCookie({ ...record, storeId: "0", partitionKey })
+    await removeCookie({ ...record, storeId: "0", partitionKey })
+
+    expect(browser.cookies.set).toHaveBeenCalledWith(
+      expect.objectContaining({ storeId: "0", partitionKey }),
+    )
+    expect(browser.cookies.remove).toHaveBeenCalledWith(
+      expect.objectContaining({ storeId: "0", partitionKey }),
+    )
+  })
+
+  it("adds a new cookie to the store of the tab", async () => {
+    vi.mocked(browser.cookies.getAllCookieStores).mockResolvedValueOnce([
+      { id: "1", tabIds: [3], incognito: true },
+    ])
+
+    await saveCookie(record, 3)
+
+    expect(browser.cookies.set).toHaveBeenCalledWith(expect.objectContaining({ storeId: "1" }))
+    expect(browser.cookies.set).toHaveBeenCalledWith(
+      expect.not.objectContaining({ partitionKey: expect.anything() }),
+    )
   })
 })
 

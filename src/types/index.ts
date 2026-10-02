@@ -106,4 +106,11 @@ export interface CookieRecord {
   session: boolean
   expirationDate?: number
   storeId?: string
+  /** Set on partitioned (CHIPS) cookies; they live in the jar of this top-level site. */
+  partitionKey?: CookiePartitionKey
+}
+
+export interface CookiePartitionKey {
+  topLevelSite?: string
+  hasCrossSiteAncestor?: boolean
 }

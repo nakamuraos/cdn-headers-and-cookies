@@ -203,7 +203,7 @@ export function CookiePanel({
                 />
               ) : (
                 <tr
-                  key={`${cookie.domain}${cookie.path}${cookie.name}`}
+                  key={`${cookie.partitionKey?.topLevelSite ?? ""}${cookie.domain}${cookie.path}${cookie.name}`}
                   className='classic:odd:bg-surface-2'
                 >
                   <td className='skin-cell skin-mono skin-cell-rule border-b border-line bg-surface-2 align-top break-words'>

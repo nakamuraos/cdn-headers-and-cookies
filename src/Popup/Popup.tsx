@@ -387,7 +387,9 @@ export function Popup(): React.JSX.Element {
           cookies={cookies}
           domain={host}
           onSave={(cookie) => {
-            void saveCookie(cookie).then(refreshCookies, () => notify("Could not save that cookie"))
+            void saveCookie(cookie, tabId ?? undefined).then(refreshCookies, () =>
+              notify("Could not save that cookie"),
+            )
           }}
           onDelete={(cookie) => {
             void removeCookie(cookie).then(refreshCookies, () =>

@@ -49,7 +49,7 @@ export function useActiveTab(): ActiveTab {
       setRequests(snapshot.requests)
 
       const cookieList = tab.url?.startsWith("http")
-        ? await listCookies(tab.url).catch(() => [])
+        ? await listCookies(tab.url, tab.id).catch(() => [])
         : []
       if (!active) return
 
@@ -76,9 +76,9 @@ export function useActiveTab(): ActiveTab {
   }, [])
 
   const refreshCookies = useCallback(async () => {
-    if (!tabUrl.startsWith("http")) return
-    setCookies(await listCookies(tabUrl).catch(() => []))
-  }, [tabUrl])
+    if (!tabUrl.startsWith("http") || tabId === null) return
+    setCookies(await listCookies(tabUrl, tabId).catch(() => []))
+  }, [tabId, tabUrl])
 
   return { tabId, tabUrl, status, requests, cookies, refreshCookies }
 }

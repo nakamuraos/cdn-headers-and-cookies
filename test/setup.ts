@@ -72,6 +72,7 @@ vi.mock("webextension-polyfill", () => {
       },
       cookies: {
         getAll: vi.fn(async () => []),
+        getAllCookieStores: vi.fn(async () => []),
         set: vi.fn(async () => undefined),
         remove: vi.fn(async () => undefined),
       },
